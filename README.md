@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # chatsphere
 
 A new Flutter project.
@@ -14,3 +15,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# ChatSphare
+>>>>>>> 9a2b73979be55d6b3087e55bd51438293510f444
