@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "945299288871",
+    "project_id": "chatsphere-bbc53",
+    "storage_bucket": "chatsphere-bbc53.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945299288871:android:4060943c09c1de3aefef02",
+        "android_client_info": {
+          "package_name": "com.example.chatsphere"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0yEshySGjdrGvsfmB73BG_0mlfOr4BFc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
