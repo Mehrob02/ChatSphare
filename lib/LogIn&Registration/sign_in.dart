@@ -36,9 +36,9 @@ class _SignInPageState extends State<SignInPage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(decoration: InputDecoration(border: OutlineInputBorder()), controller: emailController,)),
+                SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Email"), controller: emailController,)),
                 SizedBox(height: 10,),
-                SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(decoration: InputDecoration(border: OutlineInputBorder()), controller: passwordController,)),
+                SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Password"), controller: passwordController,)),
                 SizedBox(height: 10,),
               ],
             ),

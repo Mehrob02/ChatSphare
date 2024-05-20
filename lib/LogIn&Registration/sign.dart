@@ -49,7 +49,7 @@ class _SignState extends State<Sign> {
                        });
                     },
                     onPressed: (){
-                    _pageController.animateToPage(1, duration: Duration(milliseconds: 700), curve: Curves.linear);
+                    _pageController.animateToPage(1, duration: Duration(milliseconds: 400), curve: Curves.linear);
                   }, child: Padding(
                     padding: const EdgeInsets.symmetric(vertical:15.0),
                     child: Text("Sign in"),

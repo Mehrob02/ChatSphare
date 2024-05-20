@@ -25,8 +25,6 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  late Timestamp? _lastVisited;
-  List <String> timestamps=[];
   final TextEditingController textEditingController = TextEditingController();
   final ChatService chatService =ChatService();
   final FirebaseAuth firebaseAuth =FirebaseAuth.instance;
@@ -83,9 +81,6 @@ await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then
       // Convert Timestamp to DateTime for better readability
      
       DateTime lastVisitedDateTime = lastVisited.toDate(); 
-      setState(() {
-        _lastVisited = lastVisited;
-      });
       // Print the value of lastVisited as a DateTime
       debugPrint('lastVisited: $lastVisitedDateTime');
     } else {
@@ -102,7 +97,7 @@ await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Chat with ${widget.reciveruserEmail}')),
+      appBar: AppBar(title: Text('Chat with ${widget.reciveruserEmail}', style:const TextStyle(color: Colors.white),),backgroundColor: Theme.of(context).colorScheme.secondary),
       body: Column(
         children: [
           Expanded(
@@ -114,6 +109,7 @@ await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then
     );
   }
   Widget _buildMessageList(){
+    List <String> timestamps=[];
     return StreamBuilder<QuerySnapshot>(
       stream: chatService.getMessages(widget.reciverUserID, firebaseAuth.currentUser!.uid),
       builder: (context, snapshot) {
@@ -125,12 +121,12 @@ await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then
       }
       else{
         return ListView(
-          children: snapshot.data!.docs.map((document) => _buildMessageListItem(document)).toList(),
+          children: snapshot.data!.docs.map((document) => _buildMessageListItem(document, timestamps)).toList(),
         );
       }
     },);
   }
-   Widget _buildMessageListItem(DocumentSnapshot documentSnapshot){
+   Widget _buildMessageListItem(DocumentSnapshot documentSnapshot, List timestamps){
  Map<String,dynamic> data = documentSnapshot.data() as Map<String,dynamic>;
 var aligment = (data['senderId']==firebaseAuth.currentUser!.uid)?Alignment.centerRight:Alignment.centerLeft;
 final Timestamp time = data['timestamp'];

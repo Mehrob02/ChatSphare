@@ -1,12 +1,15 @@
-// ignore_for_file: unused_local_variable, body_might_complete_normally_nullable, unused_import, unused_field
+// ignore_for_file: unused_local_variable, body_might_complete_normally_nullable, unused_import, unused_field, prefer_const_constructors, unused_element
 
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/services/settings/settings_service.dart';
+import 'package:chatsphere/settings_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -65,13 +68,24 @@ Map<String, dynamic> nickNamesData = nickNameSnapshot.data() as Map<String, dyna
 String nickName = nickNamesData['nickName'];
 return nickName;
   }
-  
+  Future<String> _getProfileImageUrl(String recieverId) async {
+    try {
+      final ref = FirebaseStorage.instance.ref('user_profile_images/$recieverId.jpg');
+      String url = await ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      // Если изображение не найдено или произошла ошибка, возвращаем URL изображения по умолчанию
+      return "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png";
+    }
+  }
   @override
   void dispose() {
     super.dispose();
   }
 void signOut(){
 final authService = Provider.of<AuthService>(context,listen: false);
+final settingsService = Provider.of<SettingsService>(context,listen: false);
+settingsService.colorChange(false);
 authService.signOut();
 }
 // void startNewChat()async{
@@ -90,30 +104,27 @@ authService.signOut();
 // }
   @override
   Widget build(BuildContext context) {
- // final settingsService = Provider.of<SettingsService>(context);
     return Scaffold(
-      appBar: AppBar(title: Text('User: ${auth.currentUser!.email!}'),),
+      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.secondary, title: Text('User: ${auth.currentUser!.email!}', style:const TextStyle(color: Colors.white),),
+      actions: [
+        IconButton(onPressed:()=> Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),)), icon: const Icon(Icons.settings))
+      ],
+      ),
       body: Stack(
         children: [
           _buildUserList(),
-  //          FloatingMenuPanel(
-  //     panelIcon: Icons.format_color_fill_rounded,
-  //     onPressed: (a) {
-  //     settingsService.changeAppColor(appColors[a]);
-  //   },
-  //   buttonColors: appColors,
-  //   buttons: icons,
-  //  backgroundColor: settingsService.appColor,
-  //      ),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: ElevatedButton(
-        child: const Text("sign out"),
-        onPressed: () {
-          signOut();
-        }
-        )
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ElevatedButton(
+          child: const Text("sign out"),
+          onPressed: () {
+            signOut();
+          }
+          ),
+      )
     );
   }
   Widget _buildUserList(){
@@ -126,11 +137,6 @@ authService.signOut();
     }if(snapshot.connectionState==ConnectionState.waiting){
       return const Text("loading");
     }
-    //if(!snapshot.){
-    //   return const Center(
-    //     child: Text("🤕 No user found"),
-    //   );
-    // }
     else{
       return ListView(
         children: snapshot.data!.docs.map<Widget>((doc) => _buildUserListItem(doc)).toList()
@@ -147,7 +153,27 @@ authService.signOut();
     if(auth.currentUser!.email!=data['email']){
       return ListTile(
         subtitle: Text("${data['email']}"),
-        leading: const Icon(Icons.person),
+        leading: SizedBox(
+          width: 50,
+          height: 50,
+          child: FutureBuilder<String>(
+              future: _getProfileImageUrl(data['uid']),
+              builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return CircleAvatar(
+              radius: 75,
+              backgroundImage: CachedNetworkImageProvider(
+                  "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
+            );
+          }
+          String profileImageUrl = snapshot.data!;
+          return CircleAvatar(
+            radius: 75,
+            backgroundImage: CachedNetworkImageProvider(profileImageUrl),
+          );
+              },
+            ),
+        ),
         title: Text(snapshot.data??"loading..."),
         trailing: Text(
           lastVisited==null

@@ -1,36 +1,42 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors
 
-import 'package:chatsphere/services/auth/auth_gate.dart';
-import 'package:chatsphere/services/auth/auth_service.dart';
-import 'package:chatsphere/services/settings/settings_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:floating_menu_panel/floating_menu_panel.dart';
-import 'package:chatsphere/api/flutter_api.dart';
+
+
+import 'package:chatsphere/theme_provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'services/auth/auth_service.dart';
+import 'services/settings/settings_service.dart';
+import 'services/auth/auth_gate.dart';
+import 'package:chatsphere/api/flutter_api.dart';
+import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'firebase_options.dart';
-List <IconData> icons=[
+
+List<IconData> icons = [
   Icons.circle,
   Icons.circle,
   Icons.circle,
   Icons.circle,
+  Icons.close
 ];
-List<MaterialColor> appColors=[
+
+List<MaterialColor> appColors = [
   Colors.red,
   Colors.blue,
   Colors.green,
   Colors.deepPurple,
 ];
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FlutterApi().initNotifications();
+
+  final settingsService = SettingsService();
+  await settingsService.loadColor();
+  final themeProvider = UiProvider();
+  await themeProvider.init();
   runApp(
     MultiProvider(
       providers: [
@@ -38,8 +44,10 @@ void main() async {
           create: (context) => AuthService(),
         ),
         ChangeNotifierProvider<SettingsService>(
-          create: (context) => SettingsService(),
+          create: (context) => settingsService,
         ),
+        ChangeNotifierProvider<UiProvider>(
+        create:(context)=> themeProvider)
       ],
       child: MyApp(),
     ),
@@ -48,37 +56,61 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
+    final themeProvider = Provider.of<UiProvider>(context);
+    ThemeData darkTheme= ThemeData(
+        primaryColor: settingsService.appColor,
+        primarySwatch: settingsService.appColor,
+        secondaryHeaderColor: settingsService.appColor,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor).copyWith(
+          brightness: Brightness.dark,
+          secondary: settingsService.appColor,
+          onBackground: Colors.grey[900]
+        ),
+        brightness: Brightness.dark,
+      );
+      ThemeData lightTheme= ThemeData(
+        primaryColor: settingsService.appColor,
+        primarySwatch: settingsService.appColor,
+        secondaryHeaderColor: settingsService.appColor,
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor).copyWith(
+          brightness: Brightness.light,
+          secondary: settingsService.appColor,
+          onBackground: Colors.grey[400]
+        ),
+        brightness: Brightness.light,
+      );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Stack(
         children: [
           MaterialApp(
-            theme: ThemeData(
-        primarySwatch: settingsService.appColor,
-        secondaryHeaderColor: settingsService.appColor,
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor),
-      ),
-      debugShowCheckedModeBanner: false,
-      home: AuthGate()),
-           FloatingMenuPanel(
-      panelIcon: Icons.format_color_fill_rounded,
-      onPressed: (a) {
-      settingsService.changeAppColor(appColors[a]);
-    },
-    buttonColors: appColors,
-    buttons: icons,
-   backgroundColor: settingsService.appColor,
-       ),
+            debugShowCheckedModeBanner: false,
+            theme: themeProvider.isDark? darkTheme:lightTheme,
+           home: AuthGate()),
+          if (settingsService.colorChanger)
+            FloatingMenuPanel(
+              positionTop: 20,
+              panelIcon: Icons.format_color_fill_rounded,
+              onPressed: (a) {
+                if (a == 4) {
+                  settingsService.colorChange(false);
+                } else {
+                  settingsService.changeAppColor(appColors[a]);
+                }
+              },
+              buttonColors: appColors,
+              buttons: icons,
+              backgroundColor: settingsService.appColor,
+            ),
           if (1 == 2)
             Scaffold(
               body: Center(
                 child: Text("oops"),
               ),
-            )
+            ),
         ],
       ),
     );
