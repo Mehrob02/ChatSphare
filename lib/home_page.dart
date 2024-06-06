@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:math'as math;
@@ -41,15 +42,133 @@ List<MaterialColor> appColors=[
   Colors.green,
   Colors.deepPurple,
 ];
+List<dynamic> myContacts=[];
 //  final textController=TextEditingController();
 //List companions = [];
 @override
   void initState() {
+    setLastTimeEntered();
    Timer.periodic(const Duration(seconds: 60), (timer) {
     setLastTimeEntered();
   });
+  loadContacts();
     super.initState();
   }
+  Future<void> loadContacts() async {
+  try {
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
+      .doc("my_contacts")
+      .get();
+
+  if (docSnapshot.exists) {
+   myContacts = docSnapshot['contacts'];
+    // Теперь myContacts содержит ваш список контактов.
+    debugPrint(myContacts.toString());
+  } else {
+    try {
+      await firebaseFirestore.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).collection("${FirebaseAuth.instance.currentUser!.uid}_contacts").doc("my_contacts").set({
+        "contacts": []
+      });
+    } catch (e) {
+      debugPrint("token erroryyyy");
+    }
+    debugPrint('Document does not exist');
+  }
+  } catch (e) {
+    debugPrint("$e");
+  }
+}
+void addContactGetId()async{
+   String newContact = ''; // Инициализация пустой строкой
+  String? result = await showDialog<String>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('Enter contacts id'),
+        content: TextField(
+          onChanged: (value) {
+            newContact = value;
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(newContact);
+            },
+            child: Text('Save'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(null); // Возвращаем null при отмене
+            },
+            child: Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (result != null && result.isNotEmpty) {
+    addContact(result);
+    if (kDebugMode) {
+      print('New contact: $result');
+    }
+  }
+
+}
+Future<void> addContact(String newContactId) async {
+  try {
+    // Проверка, существует ли пользователь с таким ID
+    DocumentSnapshot userDocSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(newContactId)
+        .get();
+    if (!userDocSnapshot.exists) {
+      debugPrint("User does not exist");
+      return;
+    }
+
+    // Получение текущих контактов пользователя
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
+        .doc("my_contacts")
+        .get();
+
+    if (docSnapshot.exists) {
+      List<dynamic> myContacts = docSnapshot['contacts'];
+      // Проверка, что контакта еще нет в списке
+      if (!myContacts.contains(newContactId)) {
+        myContacts.add(newContactId);
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
+            .doc("my_contacts")
+            .set({'contacts': myContacts});
+        debugPrint("Contact added successfully");
+      } else {
+        debugPrint("You already have this contact");
+      }
+    } else {
+      // Если документа не существует, создаем новый со списком контактов
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
+          .doc("my_contacts")
+          .set({'contacts': [newContactId]});
+      debugPrint("Contact added successfully");
+    }
+  } catch (e) {
+    debugPrint("Error adding contact: $e");
+  }
+}
+
   Future<void> setLastTimeEntered()async{
     try {
       await firebaseFirestore.collection("users").doc(auth.currentUser!.uid).set({
@@ -87,6 +206,7 @@ final authService = Provider.of<AuthService>(context,listen: false);
 final settingsService = Provider.of<SettingsService>(context,listen: false);
 settingsService.colorChange(false);
 authService.signOut();
+// kIsWeb? RestartWeb() :
 }
 // void startNewChat()async{
 // await showDialog(context: context, builder:(context) {
@@ -107,7 +227,7 @@ authService.signOut();
     return Scaffold(
       appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.secondary, title: Text('User: ${auth.currentUser!.email!}', style:const TextStyle(color: Colors.white),),
       actions: [
-        IconButton(onPressed:()=> Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),)), icon: const Icon(Icons.settings))
+        IconButton(onPressed:()=> Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),)), icon: const Icon(Icons.settings, color: Colors.white,))
       ],
       ),
       body: Stack(
@@ -116,14 +236,29 @@ authService.signOut();
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: ElevatedButton(
-          child: const Text("sign out"),
-          onPressed: () {
-            signOut();
-          }
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              child: const Text("Add Contact"),
+              onPressed: () {
+                addContactGetId();
+              }
+              ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              child: const Text("sign out"),
+              onPressed: () {
+                signOut();
+              }
+              ),
+          ),
+        ],
       )
     );
   }
@@ -150,49 +285,53 @@ authService.signOut();
     return FutureBuilder<String>(
        future: getNickNames(documentSnapshot),
   builder: (context, snapshot) {
-    if(auth.currentUser!.email!=data['email']){
-      return ListTile(
-        subtitle: Text("${data['email']}"),
-        leading: SizedBox(
-          width: 50,
-          height: 50,
-          child: FutureBuilder<String>(
-              future: _getProfileImageUrl(data['uid']),
-              builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+    if(auth.currentUser!.email!=data['email']&&myContacts.contains(documentSnapshot.id)){
+   //   addContact(documentSnapshot.id);
+      return Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: ListTile(
+      //subtitle: Text("${data['email']}"),
+          leading: SizedBox(
+            width: 50,
+            height: 50,
+            child: FutureBuilder<String>(
+                future: _getProfileImageUrl(data['uid']),
+                builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return CircleAvatar(
+                radius: 75,
+                backgroundImage: CachedNetworkImageProvider(
+                    "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
+              );
+            }
+            String profileImageUrl = snapshot.data!;
             return CircleAvatar(
               radius: 75,
-              backgroundImage: CachedNetworkImageProvider(
-                  "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
+              backgroundImage: CachedNetworkImageProvider(profileImageUrl),
             );
-          }
-          String profileImageUrl = snapshot.data!;
-          return CircleAvatar(
-            radius: 75,
-            backgroundImage: CachedNetworkImageProvider(profileImageUrl),
-          );
-              },
-            ),
-        ),
-        title: Text(snapshot.data??"loading..."),
-        trailing: Text(
-          lastVisited==null
-          ?"Last visited: undefined":
-          (
-            lastVisited.toDate().toString().substring(0,10)==Timestamp.now().toDate().toString().substring(0,10)
-            ?
+                },
+              ),
+          ),
+          title: Text(snapshot.data??"loading..."),
+          trailing: Text(
+            lastVisited==null
+            ?"Last visited: undefined":
             (
-              (Timestamp.now().seconds-lastVisited.seconds<100)
+              lastVisited.toDate().toString().substring(0,10)==Timestamp.now().toDate().toString().substring(0,10)
               ?
-              "online"
-              :
-              "Last visited: ${lastVisited.toDate().toString().substring(11, 16)}"
-              )
-            :"Last visited: ${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
-            ),
-        onTap: (){
-          Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciveruserEmail: data['email'],),));
-        },
+              (
+                (Timestamp.now().seconds-lastVisited.seconds<100)
+                ?
+                "online"
+                :
+                "Last visited: ${lastVisited.toDate().toString().substring(11, 16)}"
+                )
+              :"Last visited: ${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
+              ),
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciveruserEmail: data['email'],),));
+          },
+        ),
       );
     }else{
       return Container();

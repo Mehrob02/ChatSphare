@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -201,6 +202,21 @@ class _AccountViewPageState extends State<AccountViewPage> {
             SizedBox(
               height: 10,
             ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text("Your id: ${FirebaseAuth.instance.currentUser!.uid}"),
+                IconButton(onPressed: (){setState(() {  Clipboard.setData(ClipboardData(text: FirebaseAuth.instance.currentUser!.uid));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Copied to clipboard'),
+          ),
+        );
+          debugPrint("Shoud Copy");});}, icon: Icon(Icons.copy))
+              ],
+            ),
+            
           ],
         ),
       ),

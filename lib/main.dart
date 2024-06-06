@@ -1,7 +1,8 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, unused_import
 
 
 
+import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -32,9 +33,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FlutterApi().initNotifications();
-
   final settingsService = SettingsService();
   await settingsService.loadColor();
+  await settingsService.loadWallpaperPath();
+  debugPrint(settingsService.wallpaperPath);
   final themeProvider = UiProvider();
   await themeProvider.init();
   runApp(
@@ -52,6 +54,9 @@ void main() async {
       child: MyApp(),
     ),
   );
+  // runApp(
+  //   Test()
+  // );
 }
 
 class MyApp extends StatelessWidget {
@@ -67,7 +72,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor).copyWith(
           brightness: Brightness.dark,
           secondary: settingsService.appColor,
-          onBackground: Colors.grey[900]
+          onBackground: Colors.grey[900],
+          onSecondary: Colors.black
         ),
         brightness: Brightness.dark,
       );
@@ -78,7 +84,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor).copyWith(
           brightness: Brightness.light,
           secondary: settingsService.appColor,
-          onBackground: Colors.grey[400]
+          onBackground: Colors.grey[400],
+          onSecondary: Color.fromARGB(255, 197, 197, 197)
         ),
         brightness: Brightness.light,
       );

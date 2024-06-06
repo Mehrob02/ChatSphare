@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, unused_element
 
 import 'dart:async';
 import 'dart:io';
@@ -10,11 +10,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:insta_image_viewer/insta_image_viewer.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'services/settings/settings_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.reciveruserEmail, required this.reciverUserID});
@@ -29,6 +33,7 @@ class _ChatPageState extends State<ChatPage> {
   final ChatService chatService =ChatService();
   final FirebaseAuth firebaseAuth =FirebaseAuth.instance;
   final FirebaseFirestore firebaseFirestore =FirebaseFirestore.instance;
+  final ScrollController _scrollController = ScrollController();
 
    Future<void> sendImage() async {
     final picker = ImagePicker();
@@ -51,19 +56,21 @@ Future<void> deleteImage(String imageUrl) async {
       await FirebaseStorage.instance.refFromURL(imageUrl).delete();
 }
   Future<void> sendMessage() async {
-    if(textEditingController.text.isNotEmpty){
-      await chatService.sendMessage(widget.reciverUserID, textEditingController.text);
+    String message = textEditingController.text; 
+    textEditingController.clear();
+    if(message.isNotEmpty){
+      await chatService.sendMessage(widget.reciverUserID, message);
        try {
         final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
     final token = tokenDoc.data()?['token'];
       chatService.sendNotification(
        'AAAA3Bg6cyc:APA91bEsBgNbM3DmcopwxkbVpgF3LOGvLXj2rTWP2uegePZCa7pcGnYiQfpSHQ96f3Y6GzAQKrss2UoABLBSY1Iz8LHe-L4mZAt5MJklE-sW5dTnxFAvMIZ351vS9PiDyU6vD5JPGsJA' ,
-         textEditingController.text,
+         message,
           token);
      } catch (e) {
        debugPrint("notification didn't sent");
      }
-      textEditingController.clear();
+     
     }
   }
   Future<void> removeMessage(String messageId) async {
@@ -72,6 +79,26 @@ Future<void> deleteImage(String imageUrl) async {
   @override
   void initState(){
     super.initState();
+  }
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToEnd() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+  void _jumpToBottom() {
+    _scrollController.jumpTo(
+      _scrollController.position.maxScrollExtent,
+    );
   }
   Future <void> setLastTimeEntered()async{
 await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then((DocumentSnapshot documentSnapshot) {
@@ -96,15 +123,21 @@ await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then
 }
   @override
   Widget build(BuildContext context) {
+    final settingsService = Provider.of<SettingsService>(context);
     return Scaffold(
       appBar: AppBar(title: Text('Chat with ${widget.reciveruserEmail}', style:const TextStyle(color: Colors.white),),backgroundColor: Theme.of(context).colorScheme.secondary),
-      body: Column(
-        children: [
-          Expanded(
-            child: _buildMessageList()
-            ),
-            _buildMessageInput()
-        ],
+      body: Container(
+        decoration: settingsService.wallpaperPath!="none"? BoxDecoration(
+          image: DecorationImage(fit: BoxFit.cover, image:AssetImage(settingsService.wallpaperPath))
+        ):const BoxDecoration(),
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildMessageList()
+              ),
+              _buildMessageInput()
+          ],
+        ),
       ),
     );
   }
@@ -120,7 +153,11 @@ await firebaseFirestore.collection("users").doc(widget.reciverUserID).get().then
         return const Center(child: CircularProgressIndicator());
       }
       else{
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+      _jumpToBottom();
+    });
         return ListView(
+          controller: _scrollController,
           children: snapshot.data!.docs.map((document) => _buildMessageListItem(document, timestamps)).toList(),
         );
       }
@@ -149,13 +186,12 @@ Container(
     child: Column(
       crossAxisAlignment: (aligment!=Alignment.centerRight)? CrossAxisAlignment.start:CrossAxisAlignment.end,
       children: [
-      Text(
-                time.toDate().toString().substring(11, 16),
-                style: const TextStyle(color: Colors.grey),
-              ),
-      MessageBox(child: 
+      MessageBox(
+        aligment: aligment,
+        timestamp: time.toDate().toString().substring(11, 16),
+        child: 
       CupertinoContextMenu(
-        previewBuilder: (context, animation, child) {
+        previewBuilder: (BuildContext context, animation, child) {
           return Scaffold(backgroundColor: Colors.transparent, body: Center(child:
           data['message'].toString().contains("%!image!_")?
  // Image.network(data['message'].toString().substring(9), fit: BoxFit.contain, scale: 0.5,)
@@ -190,10 +226,10 @@ Container(
           ),
         );
           debugPrint("Shoud Copy");
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: true).pop(); 
         },
         ),
-        CupertinoContextMenuAction(child: Row(
+       aligment==Alignment.centerRight? CupertinoContextMenuAction(child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
          crossAxisAlignment: CrossAxisAlignment.center,
           children: const[
@@ -207,9 +243,9 @@ Container(
           }
           removeMessage(documentSnapshot.id);
           debugPrint(documentSnapshot.id.toString());
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: true).pop(); 
         },
-        ),
+        ):const SizedBox(),
        data['message'].toString().contains("%!image!_")? CupertinoContextMenuAction(child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
          crossAxisAlignment: CrossAxisAlignment.center,
@@ -221,7 +257,7 @@ Container(
         onPressed: (){
           launch(data['message'].toString().substring(9));
           debugPrint(documentSnapshot.id.toString());
-          Navigator.of(context).pop();
+          Navigator.of(context, rootNavigator: true).pop(); 
         },
         ):const SizedBox()
       ],
@@ -245,11 +281,10 @@ Container(
   :
    Text(
     data['message'],
-    style: const TextStyle(color: Colors.white),
   ),
 )
 ),),
-      ],
+      ],  
     ),
   ),
 )
@@ -261,9 +296,25 @@ Container(
   Widget _buildMessageInput(){
     return Row(
       children: [
+        // IconButton(onPressed: (){
+        //  if(textEditingController.text.startsWith("u^ ")&&textEditingController.text.endsWith(" ^u")){
+        //   textEditingController.text = textEditingController.text.substring(3,textEditingController.text.length-3);
+        //  }
+        //  else{ 
+        //   String text = textEditingController.text;
+        //   text= "u^ $text ^u";
+        //     textEditingController.text = text;
+        //   }
+        // }, icon: const Icon(Icons.text_fields_outlined)),
         Expanded(child: TextField(
           focusNode: FocusNode(skipTraversal: true),
           controller: textEditingController,
+          onSubmitted: (value) {
+            // ignore: unnecessary_null_comparison
+            if (value.isNotEmpty||value!=null) {
+              sendMessage();
+              }
+          },
           decoration: InputDecoration(
             hintText: "Send a message...",
             border: OutlineInputBorder(

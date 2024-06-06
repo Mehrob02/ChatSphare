@@ -1,8 +1,9 @@
-// ignore_for_file: unused_local_variable, prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: unused_local_variable, prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_import
 
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chatsphere/security_page.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'account_view_page.dart';
-import 'change_app_theme_page.dart';
+import 'customisation_page.dart';
 import 'services/settings/settings_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -29,6 +30,15 @@ void switchNotification(){
   if(!kIsWeb){
     debugPrint("Switching Notification");
   }
+}
+void showAbout(){
+  showAboutDialog(
+    applicationVersion: "1.0",
+    applicationName: "Chatsphere",
+    applicationLegalese: "...",
+    applicationIcon: kIsWeb? Image.asset("AppIcons/appstore.png", width: IconTheme.of(context).size!*2,height: IconTheme.of(context).size!*2,):ImageIcon(AssetImage("assets/AppIcons/appstore.png")),
+    context: context
+  );
 }
   @override
   Widget build(BuildContext context) { 
@@ -204,7 +214,7 @@ void switchNotification(){
                                   child: ListTile(
                                     onTap: () {
                                       Navigator.pop(context);
-                                      Navigator.push(context, MaterialPageRoute(builder:(context) => ChangeAppThemePage(),));
+                                      Navigator.push(context, MaterialPageRoute(builder:(context) => CustomisationPage(),));
                                     },
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
@@ -220,7 +230,7 @@ void switchNotification(){
                                       ),
                                     ),
                                     title: Text(
-                                      "Theme Color",
+                                      "Customisation",
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -231,6 +241,9 @@ void switchNotification(){
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ListTile(
+                                    onTap:(){
+                                      Navigator.push(context, MaterialPageRoute(builder:(context) => SecurityPage(),));
+                                    },
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
                                       child: Container(
@@ -284,6 +297,9 @@ void switchNotification(){
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ListTile(
+                                    onTap: (){
+                                      showAbout();
+                                    },
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
                                       child: Container(

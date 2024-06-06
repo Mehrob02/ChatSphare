@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +10,9 @@ class SettingsService extends ChangeNotifier {
 
   bool _colorChanger = false;
   bool get colorChanger => _colorChanger;
+
+  String _wallpaperPath="none";
+  String get wallpaperPath=> _wallpaperPath;
 
   final String _email;
   String _userNickName = '';
@@ -28,11 +32,26 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void changeWallpaper(int wallpaperIndex){
+    _wallpaperPath = kIsWeb? "wallpapers/wallpaper-${wallpaperIndex+1}.jpeg":"assets/wallpapers/wallpaper-${wallpaperIndex+1}.jpeg";
+    saveWallpaperPath();
+    notifyListeners();
+  }
+
+  void deleteWallpaper(){
+    _wallpaperPath = "none";
+    notifyListeners();
+    saveWallpaperPath();
+  }
+
   set appColor(MaterialColor newAppColor) {
     _appColor = newAppColor;
     notifyListeners();
   }
-
+  set wallpaperPath(String newPath) {
+    _wallpaperPath = newPath;
+    notifyListeners();
+  }
   void changeAppColor(MaterialColor newAppColor) {
     appColor = newAppColor;
     saveAppColor();
@@ -59,6 +78,18 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void saveWallpaperPath() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('wallpaperPath', wallpaperPath);
+  }
+
+  Future<void> loadWallpaperPath() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String newPath = prefs.getString('wallpaperPath') ?? "none";
+    wallpaperPath=newPath;
+    notifyListeners();
+  }
+  
   Future<void> _loadUserNickName() async {
     if (firebaseAuth.currentUser != null) {
       DocumentSnapshot nickNameSnapshot = await FirebaseFirestore.instance
