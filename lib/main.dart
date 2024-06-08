@@ -4,9 +4,11 @@
 
 import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'internet_provider.dart';
 import 'services/auth/auth_service.dart';
 import 'services/settings/settings_service.dart';
 import 'services/auth/auth_gate.dart';
@@ -49,7 +51,10 @@ void main() async {
           create: (context) => settingsService,
         ),
         ChangeNotifierProvider<UiProvider>(
-        create:(context)=> themeProvider)
+        create:(context)=> themeProvider),
+        ChangeNotifierProvider<ConnectivityService>(
+          create: (context) => ConnectivityService(),
+        ),
       ],
       child: MyApp(),
     ),
@@ -65,6 +70,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
     final themeProvider = Provider.of<UiProvider>(context);
+    final connectivityService = Provider.of<ConnectivityService>(context);
     ThemeData darkTheme= ThemeData(
         primaryColor: settingsService.appColor,
         primarySwatch: settingsService.appColor,
@@ -91,35 +97,64 @@ class MyApp extends StatelessWidget {
       );
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Stack(
-        children: [
-          MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: themeProvider.isDark? darkTheme:lightTheme,
-           home: AuthGate()),
-          if (settingsService.colorChanger)
-            FloatingMenuPanel(
-              positionTop: 20,
-              panelIcon: Icons.format_color_fill_rounded,
-              onPressed: (a) {
-                if (a == 4) {
-                  settingsService.colorChange(false);
-                } else {
-                  settingsService.changeAppColor(appColors[a]);
-                }
-              },
-              buttonColors: appColors,
-              buttons: icons,
-              backgroundColor: settingsService.appColor,
-            ),
-          if (1 == 2)
-            Scaffold(
-              body: Center(
-                child: Text("oops"),
+      home: Scaffold(
+        body: Stack(
+          children: [
+            MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: themeProvider.isDark? darkTheme:lightTheme,
+             home: AuthGate()),
+            if (settingsService.colorChanger)
+              FloatingMenuPanel(
+                positionTop: 20,
+                panelIcon: Icons.format_color_fill_rounded,
+                onPressed: (a) {
+                  if (a == 4) {
+                    settingsService.colorChange(false);
+                  } else {
+                    settingsService.changeAppColor(appColors[a]);
+                  }
+                },
+                buttonColors: appColors,
+                buttons: icons,
+                backgroundColor: settingsService.appColor,
               ),
-            ),
+            Visibility(
+              visible: !connectivityService.hasConnection,
+              maintainAnimation: true,
+     maintainState: true,
+              child: AnimatedOpacity(
+                duration: const Duration(seconds: 1),
+        curve: Curves.fastOutSlowIn,
+        opacity: !connectivityService.hasConnection?1:0,
+                child:
+                MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: themeProvider.isDark? darkTheme:lightTheme,
+              home: Scaffold(
+                  body: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(kIsWeb? "no-connection.png":"assets/no-connection.png"),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              "Oops....",
+                              style: TextStyle(fontSize: 30),
+                            ),
+                            Text("Looks like you've lost internet connection"),
+                            Text("Please, fix your connection to continue"),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),)
         ],
-      ),
-    );
+      )));
   }
 }

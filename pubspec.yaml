@@ -52,6 +52,8 @@ dependencies:
   firebase_analytics: ^10.8.0
   insta_image_viewer: ^1.0.2
   shared_preferences: ^2.2.2
+  connectivity: ^3.0.6
+  connectivity_plus: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -79,6 +81,7 @@ flutter:
   assets:
     - assets/wallpapers/
     - assets/AppIcons/appstore.png
+    - assets/no-connection.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
