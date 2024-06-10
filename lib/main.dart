@@ -6,6 +6,7 @@ import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_notification/in_app_notification.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'internet_provider.dart';
@@ -95,66 +96,75 @@ class MyApp extends StatelessWidget {
         ),
         brightness: Brightness.light,
       );
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Stack(
-          children: [
-            MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: themeProvider.isDark? darkTheme:lightTheme,
-             home: AuthGate()),
-            if (settingsService.colorChanger)
-              FloatingMenuPanel(
-                positionTop: 20,
-                panelIcon: Icons.format_color_fill_rounded,
-                onPressed: (a) {
-                  if (a == 4) {
-                    settingsService.colorChange(false);
-                  } else {
-                    settingsService.changeAppColor(appColors[a]);
-                  }
-                },
-                buttonColors: appColors,
-                buttons: icons,
-                backgroundColor: settingsService.appColor,
-              ),
-            Visibility(
-              visible: !connectivityService.hasConnection,
-              maintainAnimation: true,
-     maintainState: true,
-              child: AnimatedOpacity(
-                duration: const Duration(seconds: 1),
-        curve: Curves.fastOutSlowIn,
-        opacity: !connectivityService.hasConnection?1:0,
-                child:
-                MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: themeProvider.isDark? darkTheme:lightTheme,
-              home: Scaffold(
-                  body: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(kIsWeb? "no-connection.png":"assets/no-connection.png"),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              "Oops....",
-                              style: TextStyle(fontSize: 30),
-                            ),
-                            Text("Looks like you've lost internet connection"),
-                            Text("Please, fix your connection to continue"),
-                          ],
-                        ),
-                      ],
+    return InAppNotification(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Stack(
+            children: [
+              MaterialApp(
+                debugShowCheckedModeBanner: false,
+                home: Stack(
+                  children: [
+                    MaterialApp(
+                      debugShowCheckedModeBanner: false,
+                      theme: themeProvider.isDark? darkTheme:lightTheme,
+                     home: AuthGate()),
+                      Visibility(
+                visible: !connectivityService.hasConnection,
+                maintainAnimation: true,
+       maintainState: true,
+                child: AnimatedOpacity(
+                  duration: const Duration(seconds: 1),
+          curve: Curves.fastOutSlowIn,
+          opacity: !connectivityService.hasConnection?1:0,
+                  child:
+                  MaterialApp(
+                debugShowCheckedModeBanner: false,
+                theme: themeProvider.isDark? darkTheme:lightTheme,
+                home: Scaffold(
+                    body: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(kIsWeb? "no-connection.png":"assets/no-connection.png"),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Text(
+                                "Oops....",
+                                style: TextStyle(fontSize: 30),
+                              ),
+                              Text("Looks like you've lost internet connection"),
+                              Text("Please, fix your connection to continue"),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+              ),)
+                  ],
+                ),
               ),
-            ),)
-        ],
-      )));
+              if (settingsService.colorChanger)
+                FloatingMenuPanel(
+                  positionTop: 20,
+                  panelIcon: Icons.format_color_fill_rounded,
+                  onPressed: (a) {
+                    if (a == 4) {
+                      settingsService.colorChange(false);
+                    } else {
+                      settingsService.changeAppColor(appColors[a]);
+                    }
+                  },
+                  buttonColors: appColors,
+                  buttons: icons,
+                  backgroundColor: settingsService.appColor,
+                ),
+             
+          ],
+        )),
+    );
   }
 }
