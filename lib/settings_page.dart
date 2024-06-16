@@ -1,4 +1,4 @@
-// ignore_for_file: unused_local_variable, prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_import
+// ignore_for_file: unused_local_variable, prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_import, deprecated_member_use
 
 import 'dart:io';
 
@@ -85,7 +85,9 @@ void showAbout(){
             return CircleAvatar(
               radius: 75,
               backgroundImage: CachedNetworkImageProvider(
-                  "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png", errorListener: () {},),
+                  "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png", errorListener:(p0) {
+                    
+                  },),
             );
           }
           String profileImageUrl = snapshot.data!;

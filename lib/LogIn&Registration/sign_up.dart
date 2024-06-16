@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,11 +19,12 @@ class _SignUpPageState extends State<SignUpPage> {
 
 void signUp()async{
    final authService = Provider.of<AuthService>(context,listen: false);
+   if(nameController.text.isNotEmpty){
     try {
-      await authService.signUpWithEmailAndPassword(emailController.text, passwordController.text, nameController.text);
-      await authService.signInWithEmailAndPassword(emailController.text, passwordController.text);
+      await authService.signUpWithEmailAndPassword(emailController.text, passwordController.text, nameController.text.trim());
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(e.toString())));
+    }
     }
 }
 

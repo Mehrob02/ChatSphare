@@ -65,6 +65,10 @@ dependencies:
   just_audio: ^0.9.37
   path: ^1.8.2
   file_picker: ^5.3.1
+  flutter_downloader: ^1.10.5
+  dio: ^5.4.3+1
+  open_file: ^3.3.2
+  flutter_list_view: ^1.1.27
 
 dev_dependencies:
   flutter_test:

@@ -42,7 +42,7 @@ class _SignState extends State<Sign> {
                 SizedBox(
                   width: MediaQuery.of(context).size.width*.8,
                   child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(signInColor), foregroundColor: MaterialStatePropertyAll((signInColor==Colors.deepPurple)? Colors.white:Colors.black)),
+                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(signInColor), foregroundColor: WidgetStatePropertyAll((signInColor==Colors.deepPurple)? Colors.white:Colors.black)),
                     onHover: (value) {
                        setState(() {
                          signInColor = !value ? Colors.deepPurple : Colors.white;
@@ -59,7 +59,7 @@ class _SignState extends State<Sign> {
               kDebugMode? SizedBox(
                   width: MediaQuery.of(context).size.width*.8,
                   child: ElevatedButton(
-                    style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(signUpColor), foregroundColor: MaterialStatePropertyAll((signUpColor==Colors.deepPurple)? Colors.white:Colors.black)),
+                    style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(signUpColor), foregroundColor: WidgetStatePropertyAll((signUpColor==Colors.deepPurple)? Colors.white:Colors.black)),
                     onHover: (value) {
                        setState(() {
                          signUpColor = !value ? Colors.deepPurple : Colors.white;

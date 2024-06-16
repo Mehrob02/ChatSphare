@@ -1,8 +1,10 @@
+import 'package:chatsphere/notification_body.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_notification/in_app_notification.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsService extends ChangeNotifier {
@@ -52,6 +54,10 @@ class SettingsService extends ChangeNotifier {
     _wallpaperPath = newPath;
     notifyListeners();
   }
+  set downloadedFiles(List<String> newFile) {
+    downloadedFiles = newFile;
+    notifyListeners();
+  }
   void changeAppColor(MaterialColor newAppColor) {
     appColor = newAppColor;
     saveAppColor();
@@ -89,7 +95,6 @@ class SettingsService extends ChangeNotifier {
     wallpaperPath=newPath;
     notifyListeners();
   }
-  
   Future<void> _loadUserNickName() async {
     if (firebaseAuth.currentUser != null) {
       DocumentSnapshot nickNameSnapshot = await FirebaseFirestore.instance
@@ -103,7 +108,17 @@ class SettingsService extends ChangeNotifier {
       }
     }
   }
-
+  void showFloatingMessage(BuildContext context, String message,{int? maxlines, VoidCallback? onTap}){
+ InAppNotification.show(
+                child: NotificationBody(child: Text(message, maxLines: maxlines,),),
+              context: context,
+              onTap: onTap,
+                );
+  }
+Future <void> init()async{
+ await loadColor();
+ await loadWallpaperPath();
+}
   MaterialColor createMaterialColor(Color color) {
     List strengths = <double>[.05];
     Map<int, Color> swatch = <int, Color>{};

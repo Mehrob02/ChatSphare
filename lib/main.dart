@@ -1,6 +1,5 @@
-// ignore_for_file: prefer_const_constructors, unused_import
-
-
+// ignore_for_file: prefer_const_constructors, unused_import, deprecated_member_use
+//https://pub.dev/packages/flutter_list_view
 
 import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
@@ -37,8 +36,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FlutterApi().initNotifications();
   final settingsService = SettingsService();
-  await settingsService.loadColor();
-  await settingsService.loadWallpaperPath();
+  await settingsService.init();
   debugPrint(settingsService.wallpaperPath);
   final themeProvider = UiProvider();
   await themeProvider.init();
@@ -73,21 +71,39 @@ class MyApp extends StatelessWidget {
     final themeProvider = Provider.of<UiProvider>(context);
     final connectivityService = Provider.of<ConnectivityService>(context);
     ThemeData darkTheme= ThemeData(
+      useMaterial3: false,
         primaryColor: settingsService.appColor,
         primarySwatch: settingsService.appColor,
         secondaryHeaderColor: settingsService.appColor,
+        scaffoldBackgroundColor: Colors.grey[900],
+        textTheme: TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
+          labelMedium: TextStyle(color: Colors.white),
+          labelSmall: TextStyle(color: Colors.white),
+          headlineMedium: TextStyle(color: Colors.white),
+          titleMedium: TextStyle(color: Colors.white),
+          displayMedium: TextStyle(color: Colors.white),
+          titleSmall: TextStyle(color: Colors.white),
+          displaySmall: TextStyle(color: Colors.white),
+        ),
+        buttonTheme: ButtonThemeData(
+                  buttonColor: settingsService.appColor,
+                  textTheme: ButtonTextTheme.accent
+        ),
         colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor).copyWith(
           brightness: Brightness.dark,
           secondary: settingsService.appColor,
-          onBackground: Colors.grey[900],
+          onBackground: Colors.grey[800],
           onSecondary: Colors.black
         ),
         brightness: Brightness.dark,
       );
       ThemeData lightTheme= ThemeData(
+        useMaterial3: false,
         primaryColor: settingsService.appColor,
         primarySwatch: settingsService.appColor,
         secondaryHeaderColor: settingsService.appColor,
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSwatch(primarySwatch: settingsService.appColor).copyWith(
           brightness: Brightness.light,
           secondary: settingsService.appColor,

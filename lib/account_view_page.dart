@@ -149,7 +149,7 @@ class _AccountViewPageState extends State<AccountViewPage> {
                             radius: 75,
                             backgroundImage: CachedNetworkImageProvider(
                               "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png",
-                              errorListener: () {},
+                              errorListener: (p1) {},
                             ),
                           );
                         }

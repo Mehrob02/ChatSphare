@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 
 import 'package:chatsphere/services/auth/auth_service.dart';
 import 'package:flutter/foundation.dart';
@@ -36,7 +36,8 @@ class _SignInPageState extends State<SignInPage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Email"), controller: emailController,)),
+                SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(
+                  decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Email"), controller: emailController,)),
                 SizedBox(height: 10,),
                 SizedBox(width: MediaQuery.of(context).size.width*.8, child: TextField(decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Password"), controller: passwordController,)),
                 SizedBox(height: 10,),
@@ -44,7 +45,12 @@ class _SignInPageState extends State<SignInPage> {
             ),
             SizedBox(
               width: MediaQuery.of(context).size.width*.6,
-              child: ElevatedButton(onPressed: (){
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary),
+                  foregroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.onSecondary)
+                ),
+                onPressed: (){
                 signIn();
               },child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -54,7 +60,12 @@ class _SignInPageState extends State<SignInPage> {
             SizedBox(height: 10,),
            kDebugMode? SizedBox(
               width: MediaQuery.of(context).size.width*.6,
-              child: ElevatedButton(onPressed: (){
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.primary),
+                  foregroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.onSecondary)
+                ),
+                onPressed: (){
                 widget.pageController.animateToPage(2, duration: Duration(milliseconds: 400), curve: Curves.linear);
               },child: Padding(
                 padding: const EdgeInsets.all(8.0),

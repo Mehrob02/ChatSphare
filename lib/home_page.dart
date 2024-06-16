@@ -14,6 +14,7 @@ import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'as math;
 
 import 'chat_page.dart';
@@ -44,7 +45,7 @@ List<MaterialColor> appColors=[
 ];
 List<dynamic> myContacts=[];
 //  final textController=TextEditingController();
-//List companions = [];
+
 @override
   void initState() {
     setLastTimeEntered();
@@ -54,6 +55,7 @@ List<dynamic> myContacts=[];
   loadContacts();
     super.initState();
   }
+
   Future<void> loadContacts() async {
   try {
     DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
@@ -315,7 +317,7 @@ authService.signOut();
           title: Text(snapshot.data??"loading..."),
           trailing: Text(
             lastVisited==null
-            ?"Last visited: undefined":
+            ?"undefined":
             (
               lastVisited.toDate().toString().substring(0,10)==Timestamp.now().toDate().toString().substring(0,10)
               ?
@@ -324,9 +326,9 @@ authService.signOut();
                 ?
                 "online"
                 :
-                "Last visited: ${lastVisited.toDate().toString().substring(11, 16)}"
+                lastVisited.toDate().toString().substring(11, 16)
                 )
-              :"Last visited: ${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
+              :"${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
               ),
           onTap: (){
             Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciveruserEmail: data['email'],),));

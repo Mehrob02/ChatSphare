@@ -225,9 +225,10 @@ class _AudioRecorderState extends State<AudioRecorder> {
   }
 }
 class RecordApp extends StatefulWidget {
-  const RecordApp({super.key, required this.reciverUserID, this.replyingToMessage});
+  const RecordApp({super.key, required this.reciverUserID, this.replyingToMessage, this.replyToId});
   final String reciverUserID;
   final String? replyingToMessage;
+  final String? replyToId;
   @override
   _RecordAppState createState() => _RecordAppState();
 }
@@ -300,7 +301,7 @@ setState(() {
       TaskSnapshot taskSnapshot = await uploadTask;
 
       String downloadURL = await taskSnapshot.ref.getDownloadURL();
-      await chatService.sendMessage(widget.reciverUserID, downloadURL,widget.replyingToMessage, MessageType.audio);
+      await chatService.sendMessage(widget.reciverUserID, downloadURL,widget.replyingToMessage, MessageType.audio,widget.replyToId);
       try {
         final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
     final token = tokenDoc.data()?['token'];
@@ -323,10 +324,11 @@ setState(() {
                  context: context,
                 onTap: () => (){},
                  ); 
-                
-    } setState(() {
+                setState(() {
         isLoading = false; // Конец загрузки в случае ошибки
       });
+    } 
+    Navigator.pop(context);
   }
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {

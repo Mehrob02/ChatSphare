@@ -7,9 +7,10 @@ class Message{
   final String message;
   final Timestamp timestamp;
   final String? replyTo;
+  final String? replyToId;
   final MessageType messageType;
 
-  Message(this.senderId, this.senderEmail, this.receiverId, this.timestamp, this.message, this.replyTo, this.messageType,);
+  Message(this.senderId, this.senderEmail, this.receiverId, this.timestamp, this.message, this.replyTo, this.messageType, this.replyToId,);
 
  Map<String,dynamic> toMap(){
   return {
@@ -19,7 +20,8 @@ class Message{
     'message':message,
     'timestamp':timestamp,
     'messageType':messageType.name,
-    if(replyTo!=null)'replyTo':replyTo
+    if(replyTo!=null)'replyTo':replyTo,
+    if(replyToId!=null)'replyToId':replyToId
   };
  }
 }
