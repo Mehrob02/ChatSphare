@@ -1,11 +1,14 @@
-// ignore_for_file: unused_local_variable, body_might_complete_normally_nullable, unused_import, unused_field, prefer_const_constructors, unused_element
+// ignore_for_file: unused_local_variable, body_might_complete_normally_nullable, unused_import, unused_field, prefer_const_constructors, unused_element, use_build_context_synchronously, prefer_const_literals_to_create_immutables
 
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:chatsphere/friend_request_page.dart';
+import 'package:chatsphere/notification_body.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/services/settings/settings_service.dart';
 import 'package:chatsphere/settings_page.dart';
+import 'package:chatsphere/vriables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -13,6 +16,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:in_app_notification/in_app_notification.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'as math;
@@ -30,7 +35,7 @@ class _HomePageState extends State<HomePage> {
   final FirebaseAuth auth =FirebaseAuth.instance;
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-
+  final ChatService chatService =ChatService();
   List <IconData> icons=[
   Icons.circle,
   Icons.circle,
@@ -55,7 +60,31 @@ List<dynamic> myContacts=[];
   loadContacts();
     super.initState();
   }
-
+void viewImage(BuildContext context, String url) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => SafeArea(
+        child: Scaffold(
+          body: Stack(
+            children: [
+              Center(
+                child: PhotoView(
+                  imageProvider: CachedNetworkImageProvider(url),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(onPressed: (){Navigator.pop(context);}, icon: Icon(Icons.cancel, color: Theme.of(context).colorScheme.onSurface,)
+                ))
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
   Future<void> loadContacts() async {
   try {
     DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
@@ -83,6 +112,7 @@ List<dynamic> myContacts=[];
     debugPrint("$e");
   }
 }
+
 void addContactGetId()async{
    String newContact = ''; // Инициализация пустой строкой
   String? result = await showDialog<String>(
@@ -114,14 +144,39 @@ void addContactGetId()async{
   );
 
   if (result != null && result.isNotEmpty) {
-    addContact(result);
+   // addContact(result);
+   sendRequest(result);
     if (kDebugMode) {
       print('New contact: $result');
     }
   }
 
 }
-Future<void> addContact(String newContactId) async {
+Future<void> sendRequest(String newContactId) async {
+ try {
+      final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(newContactId).get();
+      final token = tokenDoc.data()?['token'];
+      await chatService.sendNotification(
+        serverKey,
+        "Sent a chat request",
+        token,
+      );
+      if(!myContacts.contains(newContactId)){
+        addRequest(newContactId);
+      InAppNotification.show(
+                child: NotificationBody(child: Text("send reqest to: $newContactId${kDebugMode? "\n $token":""}",),),
+              context: context,
+              onTap: () => (){},
+                );
+      }
+      
+    } catch (e) {
+      debugPrint("Notification didn't send");
+    }
+   
+}
+
+Future<void> addRequest(String newContactId) async {
   try {
     // Проверка, существует ли пользователь с таким ID
     DocumentSnapshot userDocSnapshot = await FirebaseFirestore.instance
@@ -132,38 +187,37 @@ Future<void> addContact(String newContactId) async {
       debugPrint("User does not exist");
       return;
     }
-
-    // Получение текущих контактов пользователя
     DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
         .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
-        .doc("my_contacts")
+        .doc(newContactId)
+        .collection("${newContactId}_contacts")
+        .doc("my_requests")
         .get();
 
     if (docSnapshot.exists) {
-      List<dynamic> myContacts = docSnapshot['contacts'];
+      List<dynamic> myRequests = docSnapshot['requests'];
+      debugPrint("$myRequests");
       // Проверка, что контакта еще нет в списке
-      if (!myContacts.contains(newContactId)) {
-        myContacts.add(newContactId);
+      if (!myRequests.contains(FirebaseAuth.instance.currentUser!.uid)) {
+        myRequests.add(FirebaseAuth.instance.currentUser!.uid);
         await FirebaseFirestore.instance
             .collection('users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
-            .doc("my_contacts")
-            .set({'contacts': myContacts});
+            .doc(newContactId)
+            .collection("${newContactId}_contacts")
+            .doc("my_requests")
+            .set({'requests': myRequests});
         debugPrint("Contact added successfully");
       } else {
         debugPrint("You already have this contact");
       }
     } else {
       // Если документа не существует, создаем новый со списком контактов
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
-          .doc("my_contacts")
-          .set({'contacts': [newContactId]});
+     await firebaseFirestore
+            .collection('users')
+            .doc(newContactId)
+            .collection("${newContactId}_contacts")
+            .doc("my_requests")
+            .set({"requests": [FirebaseAuth.instance.currentUser!.uid]});
       debugPrint("Contact added successfully");
     }
   } catch (e) {
@@ -183,7 +237,7 @@ Future<void> addContact(String newContactId) async {
     }
 
   }
-  Future<String> getNickNames(DocumentSnapshot documentSnapshot)async{
+Future<String> getNickNames(DocumentSnapshot documentSnapshot)async{
 DocumentSnapshot nickNameSnapshot =await firebaseFirestore.collection("nickNames").doc(documentSnapshot.id).get();
 Map<String, dynamic> nickNamesData = nickNameSnapshot.data() as Map<String, dynamic>;
 String nickName = nickNamesData['nickName'];
@@ -210,31 +264,26 @@ settingsService.colorChange(false);
 authService.signOut();
 // kIsWeb? RestartWeb() :
 }
-// void startNewChat()async{
-// await showDialog(context: context, builder:(context) {
-//   return AlertDialog(title: TextField(controller: textController,),
-//   content: ElevatedButton(onPressed: (){
-//     setState(() {
-//       companions.add(textController.text);
-//       textController.clear();
-//     });
-//     Navigator.pop(context);
-
-//   }, child: const Text("ok")),
-//   );
-// },);
-// }
+Future refresh()async{
+  setState(() {});
+}
   @override
   Widget build(BuildContext context) {
+    final settingsService = Provider.of<SettingsService>(context);
     return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.secondary, title: Text('User: ${auth.currentUser!.email!}', style:const TextStyle(color: Colors.white),),
+      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.secondary, title:
+     //  Text('User: ${settingsService.userNickName}', style:const TextStyle(color: Colors.white),),
+        Text('ChatSphere', style:const TextStyle(color: Colors.white,fontSize: 25),),
       actions: [
         IconButton(onPressed:()=> Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),)), icon: const Icon(Icons.settings, color: Colors.white,))
       ],
       ),
-      body: Stack(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildUserList(),
+          _buildRequestWidget(),
+          Expanded(child: _buildUserList()),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -264,6 +313,42 @@ authService.signOut();
       )
     );
   }
+  Widget _buildRequestWidget(){
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).collection("${FirebaseAuth.instance.currentUser!.uid}_contacts").snapshots(),
+        builder: (context, snapshot) {
+          if(snapshot.hasData){
+      List<String> requests = [];
+          for (var doc in snapshot.data!.docs) {
+            var data = doc.data();
+            if (data.containsKey('requests')) {
+              requests.addAll(List<String>.from(data['requests']));
+            }
+          }
+          debugPrint("Requests: $requests");
+      return
+      requests.isNotEmpty?
+       Padding(
+         padding: const EdgeInsets.all(8.0),
+         child: Container( 
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor,
+            borderRadius: BorderRadius.all(Radius.circular(10))
+          ),
+          child: ListTile(
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder:(context) => FriendRequestPage(friendRequestList: requests),));
+            },
+            title: Text("You've got a chat requiest",style: TextStyle(color: Colors.white),), 
+          trailing: Text("${requests.length}",style: TextStyle(color: Colors.white)))),
+       )
+       :SizedBox();
+    }else{
+      return SizedBox();
+    }
+        },
+    ); 
+  }
   Widget _buildUserList(){
   return StreamBuilder<QuerySnapshot>(
     stream: FirebaseFirestore.instance.collection('users').snapshots(),
@@ -275,13 +360,16 @@ authService.signOut();
       return const Text("loading");
     }
     else{
-      return ListView(
-        children: snapshot.data!.docs.map<Widget>((doc) => _buildUserListItem(doc)).toList()
+      return RefreshIndicator(
+        onRefresh: ()=>refresh(),
+        child: ListView(
+          children: snapshot.data!.docs.map<Widget>((doc) => _buildUserListItem(doc)).toList()
+        ),
       );
     }
   },);
   }
-  Widget _buildUserListItem(DocumentSnapshot documentSnapshot){
+ Widget _buildUserListItem(DocumentSnapshot documentSnapshot){
     Map<String,dynamic> data = documentSnapshot.data()! as Map<String,dynamic>;
     Timestamp? lastVisited = data['lastVisited'];
     return FutureBuilder<String>(
@@ -305,12 +393,18 @@ authService.signOut();
                 backgroundImage: CachedNetworkImageProvider(
                     "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
               );
-            }
+            }else{
             String profileImageUrl = snapshot.data!;
-            return CircleAvatar(
-              radius: 75,
-              backgroundImage: CachedNetworkImageProvider(profileImageUrl),
-            );
+            return GestureDetector(
+              onTap: () {
+                viewImage(context, profileImageUrl);
+                debugPrint("ViewProfile");
+              },
+              child: CircleAvatar(
+                radius: 75,
+                backgroundImage: CachedNetworkImageProvider(profileImageUrl),
+              ),
+            );}
                 },
               ),
           ),
@@ -331,7 +425,7 @@ authService.signOut();
               :"${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
               ),
           onTap: (){
-            Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciveruserEmail: data['email'],),));
+            Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciverUserEmail: data['email'],reciverUserName: snapshot.data!,),));
           },
         ),
       );

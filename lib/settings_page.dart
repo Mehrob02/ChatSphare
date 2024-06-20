@@ -40,6 +40,10 @@ void showAbout(){
     context: context
   );
 }
+@override
+  void initState() {
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) { 
     final settingsService = Provider.of<SettingsService>(context);

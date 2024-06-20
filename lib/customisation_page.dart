@@ -20,7 +20,17 @@ class _CustomisationPageState extends State<CustomisationPage> {
     Colors.green,
     Colors.deepPurple,
   ];
-
+List <Color> walpaperColors = [
+Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.deepPurple,
+    Colors.yellow,
+    Colors.deepOrange,
+    Colors.pink,
+    Colors.indigo,
+    Colors.brown,
+];
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
@@ -83,7 +93,7 @@ class _CustomisationPageState extends State<CustomisationPage> {
                   children: [
                     Text("Choose the wallpaper"),
                     SizedBox(
-                      height: 400, // Adjust the height based on your requirement
+                      height: 600, // Adjust the height based on your requirement
                       child: GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
@@ -104,6 +114,37 @@ class _CustomisationPageState extends State<CustomisationPage> {
                                     top: 0,
                                     left: 0,
                                   child: Icon(Icons.done,color: Theme.of(context).colorScheme.primary,size: IconTheme.of(context).size!*1.5,))
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    ElevatedButton(onPressed: (){settingsService.deleteWallpaper();}, child: Text("None"))
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text("Choose the background color"),
+                    SizedBox(
+                      height: 600, // Adjust the height based on your requirement
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                        ),
+                        itemCount: 9,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Stack(
+                                children: [
+                                 Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  color: walpaperColors[index],
+                                 )
                                 ],
                               ),
                             ),

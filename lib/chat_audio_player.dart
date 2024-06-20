@@ -13,8 +13,7 @@ class ChatAudioPlayer extends StatefulWidget {
 class _ChatAudioPlayerState extends State<ChatAudioPlayer> {
   final AudioPlayer _audioPlayer=AudioPlayer();
   late StreamSubscription<PlayerState> _playerStateChangedSubscription;
-  late StreamSubscription<Duration?> _durationChangedSubscription;
-  late StreamSubscription<Duration> _positionChangedSubscription;
+ 
    Duration position = Duration.zero;
    Duration? duration = Duration.zero;
   bool isPaused= true;
@@ -50,8 +49,6 @@ class _ChatAudioPlayerState extends State<ChatAudioPlayer> {
   @override
   void dispose() {
     _playerStateChangedSubscription.cancel();
-    _positionChangedSubscription.cancel();
-    _durationChangedSubscription.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }

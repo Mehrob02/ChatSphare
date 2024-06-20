@@ -69,6 +69,7 @@ dependencies:
   dio: ^5.4.3+1
   open_file: ^3.3.2
   flutter_list_view: ^1.1.27
+  test: ^1.25.2
 
 dev_dependencies:
   flutter_test:

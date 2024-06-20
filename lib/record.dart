@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:chatsphere/audio_player.dart';
+import 'package:chatsphere/vriables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -306,7 +307,7 @@ setState(() {
         final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
     final token = tokenDoc.data()?['token'];
       chatService.sendNotification(
-       'AAAA3Bg6cyc:APA91bEsBgNbM3DmcopwxkbVpgF3LOGvLXj2rTWP2uegePZCa7pcGnYiQfpSHQ96f3Y6GzAQKrss2UoABLBSY1Iz8LHe-L4mZAt5MJklE-sW5dTnxFAvMIZ351vS9PiDyU6vD5JPGsJA' ,
+       serverKey ,
          "Sent audio",
           token);
      } catch (e) {

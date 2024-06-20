@@ -12,6 +12,7 @@ import 'package:chatsphere/mytests/testfile2.dart';
 import 'package:chatsphere/record.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/video_view.dart';
+import 'package:chatsphere/vriables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +21,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_picker/image_picker.dart';
@@ -35,9 +37,10 @@ import 'notification_body.dart';
 import 'services/settings/settings_service.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.reciveruserEmail, required this.reciverUserID});
-  final String reciveruserEmail;
+  const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName});
+  final String reciverUserEmail;
   final String reciverUserID;
+  final String reciverUserName;
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
@@ -88,7 +91,7 @@ class _ChatPageState extends State<ChatPage> {
         final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
     final token = tokenDoc.data()?['token'];
       chatService.sendNotification(
-       'AAAA3Bg6cyc:APA91bEsBgNbM3DmcopwxkbVpgF3LOGvLXj2rTWP2uegePZCa7pcGnYiQfpSHQ96f3Y6GzAQKrss2UoABLBSY1Iz8LHe-L4mZAt5MJklE-sW5dTnxFAvMIZ351vS9PiDyU6vD5JPGsJA' ,
+       serverKey ,
          "Sent an image",
           token);
      } catch (e) {
@@ -120,7 +123,7 @@ Future<void> sendVideo() async {
       final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
       final token = tokenDoc.data()?['token'];
       await chatService.sendNotification(
-        'AAAA3Bg6cyc:APA91bEsBgNbM3DmcopwxkbVpgF3LOGvLXj2rTWP2uegePZCa7pcGnYiQfpSHQ96f3Y6GzAQKrss2UoABLBSY1Iz8LHe-L4mZAt5MJklE-sW5dTnxFAvMIZ351vS9PiDyU6vD5JPGsJA',
+        serverKey,
         "Sent a video",
         token,
       );
@@ -153,7 +156,7 @@ Future<void> sendFile() async {
       final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
       final token = tokenDoc.data()?['token'];
       await chatService.sendNotification(
-        'AAAA3Bg6cyc:APA91bEsBgNbM3DmcopwxkbVpgF3LOGvLXj2rTWP2uegePZCa7pcGnYiQfpSHQ96f3Y6GzAQKrss2UoABLBSY1Iz8LHe-L4mZAt5MJklE-sW5dTnxFAvMIZ351vS9PiDyU6vD5JPGsJA',
+        serverKey,
         "Sent a file",
         token,
       );
@@ -187,7 +190,7 @@ Future<void> deleteFile(String fileUrl) async {
         final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
     final token = tokenDoc.data()?['token'];
       chatService.sendNotification(
-       'AAAA3Bg6cyc:APA91bEsBgNbM3DmcopwxkbVpgF3LOGvLXj2rTWP2uegePZCa7pcGnYiQfpSHQ96f3Y6GzAQKrss2UoABLBSY1Iz8LHe-L4mZAt5MJklE-sW5dTnxFAvMIZ351vS9PiDyU6vD5JPGsJA' ,
+       serverKey ,
          message,
           token);
      } catch (e) {
@@ -315,7 +318,8 @@ void viewImage(BuildContext context, String url) {
     final settingsService = Provider.of<SettingsService>(context);
     
     return Scaffold(
-      appBar: AppBar(title: Text('Chat with ${widget.reciveruserEmail}', style:const TextStyle(color: Colors.white),),backgroundColor: Theme.of(context).colorScheme.secondary),
+     // backgroundColor: Colors.indigo,
+      appBar: AppBar(title: Text('Chat with ${widget.reciverUserName}', style:const TextStyle(color: Colors.white),),backgroundColor: Theme.of(context).colorScheme.secondary),
       body: Container(
         decoration: settingsService.wallpaperPath!="none"? BoxDecoration(
           image: DecorationImage(fit: BoxFit.cover, image:AssetImage(settingsService.wallpaperPath))
@@ -345,7 +349,7 @@ void viewImage(BuildContext context, String url) {
                 ],
               ),
             ),
-              _buildMessageInput()
+              _buildMessageInputNew()
           ],
         ),
       ),
@@ -366,27 +370,9 @@ void viewImage(BuildContext context, String url) {
                         //if some or all data is loaded then show it
                         case ConnectionState.active:
                         case ConnectionState.done:
-    //     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   _scrollToEnd();
-    // });
     List<QueryDocumentSnapshot> chat =  snapshot.data!.docs.reversed.toList();
         return Stack(
-          children: [
-            // ListView(
-            //   controller: _scrollController,
-            //   children: snapshot.data!.docs.map((document) => _buildMessageListItem(document, timestamps)).toList(),
-            // ),
-
-            // SingleChildScrollView(
-            //   controller: controller,
-            //   child: Column(
-            //     mainAxisSize: MainAxisSize.min,
-            //     children: 
-            //       snapshot.data!.docs.map((document) => _buildMessageListItem(document, timestamps,)).toList().reversed.toList(),
-                
-            //   ),
-            // ),
-       
+          children: [   
        FlutterListView(
         reverse: true,
   controller: controller,
@@ -417,16 +403,16 @@ final Timestamp time = data['timestamp'];
 return Column(
   key: ValueKey(documentSnapshot.id),
   children: [
-     Visibility(
-  visible: timestamps.contains(time.toDate().toString().substring(0, 10)) ? false : () {
-    timestamps.add(time.toDate().toString().substring(0, 10));
-    return true;
-  }(),
-  child: Text(
-            time.toDate().toString().substring(0, 10),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-),
+//      Visibility(
+//   visible: timestamps.contains(time.toDate().toString().substring(0, 10)) ? false : () {
+//     timestamps.add(time.toDate().toString().substring(0, 10));
+//     return true;
+//   }(),
+//   child: Text(
+//             time.toDate().toString().substring(0, 10),
+//             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//           ),
+// ),
 Container(
   alignment: aligment,
   child: Padding(
@@ -446,360 +432,358 @@ Container(
                       }
                     },
         child: 
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment:aligment==Alignment.centerRight? CrossAxisAlignment.end:CrossAxisAlignment.start,
-          children: [
-            if(data['replyTo']!=null) 
-              data['replyTo']!.contains("%!image!_")||data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/images")?
-              GestureDetector(
-                onDoubleTap: (){
-                  data['replyToId']==null?
-                  viewImage(context,data['replyTo']!.contains("%!image!_")?data['replyTo']!.substring(9):data['replyTo']!)
-                  : WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollToItem(data['replyToId']);
-    }); 
-                },
-                onTap: (){
-                  data['replyToId']==null?
-                  viewImage(context,data['replyTo']!.contains("%!image!_")?data['replyTo']!.substring(9):data['replyTo']!)
-                  :WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollToItem(data['replyToId']);
-    }); 
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text("replyed:", style: TextStyle(fontSize: 10,)),
-                     Icon(Icons.image, size: IconTheme.of(context).size!*0.7,),
-                  ],
+        Container(
+          decoration: BoxDecoration(
+           color:aligment==Alignment.centerRight? Theme.of(context).primaryColor.withOpacity(0.3):Theme.of(context).colorScheme.onSecondary.withOpacity(0.3), 
+           borderRadius:aligment==Alignment.centerRight? BorderRadius.only(bottomLeft: Radius.circular(10), topLeft: Radius.circular(10), bottomRight: Radius.circular(13)):BorderRadius.only( topRight: Radius.circular(10), bottomLeft: Radius.circular(13), bottomRight: Radius.circular(10),),
+
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:aligment==Alignment.centerRight? CrossAxisAlignment.end:CrossAxisAlignment.start,
+            children: [
+              if(data['replyTo']!=null) 
+                data['replyTo']!.contains("%!image!_")||data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/images")?
+                GestureDetector(
+                  onDoubleTap: (){
+                    data['replyToId']==null?
+                    viewImage(context,data['replyTo']!.contains("%!image!_")?data['replyTo']!.substring(9):data['replyTo']!)
+                    : WidgetsBinding.instance.addPostFrameCallback((_) {
+                scrollToItem(data['replyToId']);
+              }); 
+                  },
+                  onTap: (){
+                    data['replyToId']==null?
+                    viewImage(context,data['replyTo']!.contains("%!image!_")?data['replyTo']!.substring(9):data['replyTo']!)
+                    :WidgetsBinding.instance.addPostFrameCallback((_) {
+                scrollToItem(data['replyToId']);
+              }); 
+                  },
+                  child: Icon(Icons.image, size: IconTheme.of(context).size!*0.7,),
+                ) 
+                :
+                data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/audio")?
+                Text(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""}audio")
+                :
+               data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/videos")?
+               Text(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""}video")
+                :
+                data['messageType']==MessageType.audio?
+                Text(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""}audio")
+                :
+                GestureDetector(
+                 onDoubleTap: () {
+                  //data['replyToId']==null?
+                    InAppNotification.show(
+                  child: NotificationBody(child: Text("${data['replyTo']!}", maxLines: 5,),),
+                context: context,
+                onTap: () => (){},
+                  )
+              //               :WidgetsBinding.instance.addPostFrameCallback((_) {
+              //   scrollToItem(data['replyToId']);
+              // })
+              ; 
+                 },
+                 onTap:(){
+                 //  data['replyToId']==null?
+                    InAppNotification.show(
+                  child: NotificationBody(child: Text("${data['replyTo']!}", maxLines: 5,),),
+                context: context,
+                onTap: () => (){},
+                  )
+              //              : WidgetsBinding.instance.addPostFrameCallback((_) {
+              //   scrollToItem(data['replyToId']);
+              // })
+              ; 
+                 } ,
+                  child: Text(_truncateText(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""} ${data['replyTo']!}", 30), style: TextStyle(fontSize: 15,))
                 ),
-              ) 
-              :
-              data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/audio")?
-              Text("replyed: audio")
-              :
-             data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/videos")?
-             Text("replyed: video")
-              :
-              data['messageType']==MessageType.audio?
-              Text("replyed: audio")
-              :
-              GestureDetector(
-               onDoubleTap: () {
-                data['replyToId']==null?
-                  InAppNotification.show(
-                child: NotificationBody(child: Text("reply to: ${data['replyTo']!}", maxLines: 5,),),
-              context: context,
-              onTap: () => (){},
-                )
-                  :WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollToItem(data['replyToId']);
-    }); 
-               },
-               onTap:(){
-                 data['replyToId']==null?
-                  InAppNotification.show(
-                child: NotificationBody(child: Text("reply to: ${data['replyTo']!}", maxLines: 5,),),
-              context: context,
-              onTap: () => (){},
-                )
-                 : WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollToItem(data['replyToId']);
-    }); 
-               } ,
-                child: RichText(text: TextSpan(
-                  children: [
-                   TextSpan(text: "replyed:", style: TextStyle(fontSize: 12)),
-                   TextSpan(text: _truncateText(data['replyTo']!, 8), style: TextStyle(fontSize: 15,))
-                  ]
-                )),
-              ),
-       data['messageType']!=null?
-       MessageBox(
-        replyToId: data['replyToId'],
-        messageType: defineType(data['messageType']),
-        replyTo: data['replyTo'],
-        timestamp: time.toDate().toString().substring(11, 16), 
-        aligment: aligment,
-        child:
-        defineType(data['messageType'])==MessageType.audio?
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ChatAudioPlayer(source:AudioSource.uri(Uri.parse(data['message'])),),
-          if(aligment==Alignment.centerRight)  IconButton(onPressed: (){deleteAudio(data['message']);
-            removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
-          ],
-        )
-        :
-        defineType(data['messageType'])==MessageType.file?
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            IconButton(onPressed: (){deleteFile(data['message']).whenComplete(()=>settingsService.showFloatingMessage(context, "sucessifully deleted")); removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
-            FileView(fileUrl:data['message']),
-          ],
-        )
-        :
-        defineType(data['messageType'])==MessageType.video?
-        VideoView(videoUrl: data['message'],)
-        :
-        CupertinoContextMenu(
-        //   previewBuilder: (BuildContext context, animation, child) {
-        //     final MessageType messageType = defineType(data['messageType']);
-        //     switch (messageType) {
-        //       case MessageType.file:
-        //         return Scaffold(
-        //           backgroundColor: Colors.transparent,
-        //           body: Center(
-        //             child: Text("file"),
-        //           ),
-        //         );
-        //       case MessageType.audio:
-        //         return Scaffold(
-        //           backgroundColor: Colors.transparent,
-        //           body: Center(
-        //             child: Text("Audio"),
-        //           ),
-        //         );
-        //       case MessageType.video:
-        //         return Scaffold(
-        //           backgroundColor: Colors.transparent,
-        //           body: Center(
-        //             child: Text("video"),
-        //           ),
-        //         );
-        //       case MessageType.text:
-        //         return Scaffold(
-        //           backgroundColor: Colors.transparent,
-        //           body: Center(child: SelectableText(data['message'],style: const TextStyle(fontSize: 30),
-        //               maxLines: 4,)),
-        //         );
-        //       case MessageType.image:
-        //         return Scaffold(
-        //           backgroundColor: Colors.transparent,
-        //           body: Center(
-        //             child: CachedNetworkImage(
-        //  fit: BoxFit.contain,
-        //  imageUrl: data['message'],
-        //  progressIndicatorBuilder: (context, url, downloadProgress) => 
-        //          CircularProgressIndicator(value: downloadProgress.progress),
-        //  errorWidget: (context, url, error) => const Icon(Icons.error),
-        //   )),
-        //         );  
-        //       default:
-        //          return Scaffold(
-        //           body: Center(child: Text("undefined")),
-        //          );
-        //     }     
-        //   },
-        actions: [
-          CupertinoContextMenuAction(child:
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("Copy"),
-              Icon(Icons.copy_outlined),
-            ],
-          ),
-           
-          onPressed: (){     
-               Clipboard.setData(ClipboardData(text:data['message'].toString()));
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Copied to clipboard'),
-            ),
-          );
-            debugPrint("Shoud Copy");
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
-          ),
-         aligment==Alignment.centerRight? CupertinoContextMenuAction(child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("Delete"),
-              Icon(Icons.delete_outlined),
-            ],
-          ),
-          onPressed: (){
-            final MessageType messageType = defineType(data['messageType']);
-            switch (messageType) {
-              case MessageType.text:
-                break;
-              case MessageType.file:
-              break;
-              case MessageType.image:  
-               deleteImage(data['message'].toString());
-               break;
-              case MessageType.video:
-              break;
-              default:
-              break;
-            }
-            removeMessage(documentSnapshot.id);
-            debugPrint(documentSnapshot.id.toString());
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
-          ):const SizedBox(),
-         defineType(data['messageType'])==MessageType.image? CupertinoContextMenuAction(child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("Download"),
-              Icon(Icons.download),
-            ],
-          ),
-          onPressed: (){
-            launch(data['message']);
-            debugPrint(documentSnapshot.id.toString());
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
-          ):const SizedBox(),
-          kDebugMode? CupertinoContextMenuAction(child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("get Id"),
-              Icon(Icons.copy_all),
-            ],
-          ),
-          onPressed: (){
-            debugPrint(documentSnapshot.id.toString());
-             Clipboard.setData(ClipboardData(text:documentSnapshot.id.toString()));
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
-          ):const SizedBox()
-        ],
-        child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width*0.7,
-        ),
-        child:
-        defineType(data['messageType'])==MessageType.image?
-        InstaImageViewer(
-          child: InteractiveViewer(
-        child: CachedNetworkImage(
-          fit: BoxFit.contain,
-             imageUrl: data['message'],
-             progressIndicatorBuilder: (context, url, downloadProgress) => 
-                     CircularProgressIndicator(value: downloadProgress.progress),
-             errorWidget: (context, url, error) => const Icon(Icons.error),
-          ),
-          ),
-        )
-        :
-         Text(
-          data['message'],
-        )
-      )
-      )
-        )
-       : 
-        MessageBox(
+                 data['messageType']!=null?
+                 MessageBox(
           replyToId: data['replyToId'],
-          aligment: aligment,
+          messageType: defineType(data['messageType']),
           replyTo: data['replyTo'],
-          timestamp: time.toDate().toString().substring(11, 16),
+          timestamp: time.toDate().toString().substring(11, 16), 
+          aligment: aligment,
           child:
-        CupertinoContextMenu(
-      //     previewBuilder: (BuildContext context, animation, child) {
-      //       return Scaffold(backgroundColor: Colors.transparent, body: Center(child:
-      //       data['message'].toString().contains("%!image!_")?
-      //  // Image.network(data['message'].toString().substring(9), fit: BoxFit.contain, scale: 0.5,)
-      //  CachedNetworkImage(
-      //    fit: BoxFit.contain,
-      //    imageUrl: data['message'].toString().substring(9),
-      //    progressIndicatorBuilder: (context, url, downloadProgress) => 
-      //            CircularProgressIndicator(value: downloadProgress.progress),
-      //    errorWidget: (context, url, error) => const Icon(Icons.error),
-      //     )
-      //   :
-      //    SelectableText(data['message'],style: const TextStyle(fontSize: 30),
-      //                 maxLines: 4,)));
-           
-      //     },
-        actions: [
-          CupertinoContextMenuAction(child:
+          defineType(data['messageType'])==MessageType.audio?
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("Copy"),
-              Icon(Icons.copy_outlined),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ChatAudioPlayer(source:AudioSource.uri(Uri.parse(data['message'])),),
+            if(aligment==Alignment.centerRight)  IconButton(onPressed: (){deleteAudio(data['message']);
+              removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
             ],
-          ),
-           
-          onPressed: (){
-             Clipboard.setData(ClipboardData(text: data['message'].toString().contains("%!image!_")?data['message'].toString().substring(9):data['message']));
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Copied to clipboard'),
+          )
+          :
+          defineType(data['messageType'])==MessageType.file?
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              IconButton(onPressed: (){deleteFile(data['message']).whenComplete(()=>settingsService.showFloatingMessage(context, "sucessifully deleted")); removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
+              FileView(fileUrl:data['message']),
+            ],
+          )
+          :
+          defineType(data['messageType'])==MessageType.video?
+          VideoView(videoUrl: data['message'],)
+          :
+          CupertinoContextMenu(
+          //   previewBuilder: (BuildContext context, animation, child) {
+          //     final MessageType messageType = defineType(data['messageType']);
+          //     switch (messageType) {
+          //       case MessageType.file:
+          //         return Scaffold(
+          //           backgroundColor: Colors.transparent,
+          //           body: Center(
+          //             child: Text("file"),
+          //           ),
+          //         );
+          //       case MessageType.audio:
+          //         return Scaffold(
+          //           backgroundColor: Colors.transparent,
+          //           body: Center(
+          //             child: Text("Audio"),
+          //           ),
+          //         );
+          //       case MessageType.video:
+          //         return Scaffold(
+          //           backgroundColor: Colors.transparent,
+          //           body: Center(
+          //             child: Text("video"),
+          //           ),
+          //         );
+          //       case MessageType.text:
+          //         return Scaffold(
+          //           backgroundColor: Colors.transparent,
+          //           body: Center(child: SelectableText(data['message'],style: const TextStyle(fontSize: 30),
+          //               maxLines: 4,)),
+          //         );
+          //       case MessageType.image:
+          //         return Scaffold(
+          //           backgroundColor: Colors.transparent,
+          //           body: Center(
+          //             child: CachedNetworkImage(
+          //  fit: BoxFit.contain,
+          //  imageUrl: data['message'],
+          //  progressIndicatorBuilder: (context, url, downloadProgress) => 
+          //          CircularProgressIndicator(value: downloadProgress.progress),
+          //  errorWidget: (context, url, error) => const Icon(Icons.error),
+          //   )),
+          //         );  
+          //       default:
+          //          return Scaffold(
+          //           body: Center(child: Text("undefined")),
+          //          );
+          //     }     
+          //   },
+          actions: [
+            CupertinoContextMenuAction(child:
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("Copy"),
+                Icon(Icons.copy_outlined),
+              ],
             ),
-          );
-            debugPrint("Shoud Copy");
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
+             
+            onPressed: (){     
+                 Clipboard.setData(ClipboardData(text:data['message'].toString()));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Copied to clipboard'),
+              ),
+            );
+              debugPrint("Shoud Copy");
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ),
+           aligment==Alignment.centerRight? CupertinoContextMenuAction(child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("Delete"),
+                Icon(Icons.delete_outlined),
+              ],
+            ),
+            onPressed: (){
+              final MessageType messageType = defineType(data['messageType']);
+              switch (messageType) {
+                case MessageType.text:
+                  break;
+                case MessageType.file:
+                break;
+                case MessageType.image:  
+                 deleteImage(data['message'].toString());
+                 break;
+                case MessageType.video:
+                break;
+                default:
+                break;
+              }
+              removeMessage(documentSnapshot.id);
+              debugPrint(documentSnapshot.id.toString());
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ):const SizedBox(),
+           defineType(data['messageType'])==MessageType.image? CupertinoContextMenuAction(child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("Download"),
+                Icon(Icons.download),
+              ],
+            ),
+            onPressed: (){
+              launch(data['message']);
+              debugPrint(documentSnapshot.id.toString());
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ):const SizedBox(),
+            kDebugMode? CupertinoContextMenuAction(child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("get Id"),
+                Icon(Icons.copy_all),
+              ],
+            ),
+            onPressed: (){
+              debugPrint(documentSnapshot.id.toString());
+               Clipboard.setData(ClipboardData(text:documentSnapshot.id.toString()));
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ):const SizedBox()
+          ],
+          child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width*0.7,
           ),
-         aligment==Alignment.centerRight? CupertinoContextMenuAction(child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("Delete"),
-              Icon(Icons.delete_outlined),
-            ],
+          child:
+          defineType(data['messageType'])==MessageType.image?
+          InstaImageViewer(
+            child: InteractiveViewer(
+          child: CachedNetworkImage(
+            fit: BoxFit.contain,
+               imageUrl: data['message'],
+               progressIndicatorBuilder: (context, url, downloadProgress) => 
+                       CircularProgressIndicator(value: downloadProgress.progress),
+               errorWidget: (context, url, error) => const Icon(Icons.error),
+            ),
+            ),
+          )
+          :
+           Text(
+            data['message'],
+          )
+                )
+                )
+          )
+                 : 
+          MessageBox(
+            replyToId: data['replyToId'],
+            aligment: aligment,
+            replyTo: data['replyTo'],
+            timestamp: time.toDate().toString().substring(11, 16),
+            child:
+          CupertinoContextMenu(
+                //     previewBuilder: (BuildContext context, animation, child) {
+                //       return Scaffold(backgroundColor: Colors.transparent, body: Center(child:
+                //       data['message'].toString().contains("%!image!_")?
+                //  // Image.network(data['message'].toString().substring(9), fit: BoxFit.contain, scale: 0.5,)
+                //  CachedNetworkImage(
+                //    fit: BoxFit.contain,
+                //    imageUrl: data['message'].toString().substring(9),
+                //    progressIndicatorBuilder: (context, url, downloadProgress) => 
+                //            CircularProgressIndicator(value: downloadProgress.progress),
+                //    errorWidget: (context, url, error) => const Icon(Icons.error),
+                //     )
+                //   :
+                //    SelectableText(data['message'],style: const TextStyle(fontSize: 30),
+                //                 maxLines: 4,)));
+             
+                //     },
+          actions: [
+            CupertinoContextMenuAction(child:
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("Copy"),
+                Icon(Icons.copy_outlined),
+              ],
+            ),
+             
+            onPressed: (){
+               Clipboard.setData(ClipboardData(text: data['message'].toString().contains("%!image!_")?data['message'].toString().substring(9):data['message']));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Copied to clipboard'),
+              ),
+            );
+              debugPrint("Shoud Copy");
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ),
+           aligment==Alignment.centerRight? CupertinoContextMenuAction(child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("Delete"),
+                Icon(Icons.delete_outlined),
+              ],
+            ),
+            onPressed: (){
+              if(data['message'].toString().contains("%!image!_")){
+                deleteImage(data['message'].toString().substring(9));
+              }
+              removeMessage(documentSnapshot.id);
+              debugPrint(documentSnapshot.id.toString());
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ):const SizedBox(),
+           data['message'].toString().contains("%!image!_")? CupertinoContextMenuAction(child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             crossAxisAlignment: CrossAxisAlignment.center,
+              children: const[
+                Text("Download"),
+                Icon(Icons.download),
+              ],
+            ),
+            onPressed: (){
+              launch(data['message'].toString().substring(9));
+              debugPrint(documentSnapshot.id.toString());
+              Navigator.of(context, rootNavigator: true).pop(); 
+            },
+            ):const SizedBox()
+          ],
+          child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width*0.7,
           ),
-          onPressed: (){
-            if(data['message'].toString().contains("%!image!_")){
-              deleteImage(data['message'].toString().substring(9));
-            }
-            removeMessage(documentSnapshot.id);
-            debugPrint(documentSnapshot.id.toString());
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
-          ):const SizedBox(),
-         data['message'].toString().contains("%!image!_")? CupertinoContextMenuAction(child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-           crossAxisAlignment: CrossAxisAlignment.center,
-            children: const[
-              Text("Download"),
-              Icon(Icons.download),
-            ],
+          child:
+          data['message'].toString().contains("%!image!_")?
+          InstaImageViewer(
+            child: InteractiveViewer(
+          child: CachedNetworkImage(
+            fit: BoxFit.contain,
+               imageUrl: data['message'].toString().substring(9),
+               progressIndicatorBuilder: (context, url, downloadProgress) => 
+                       CircularProgressIndicator(value: downloadProgress.progress),
+               errorWidget: (context, url, error) => const Icon(Icons.error),
+            ),
+            ),
+          )
+          :
+           Text(
+            data['message'],
           ),
-          onPressed: (){
-            launch(data['message'].toString().substring(9));
-            debugPrint(documentSnapshot.id.toString());
-            Navigator.of(context, rootNavigator: true).pop(); 
-          },
-          ):const SizedBox()
-        ],
-        child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width*0.7,
-        ),
-        child:
-        data['message'].toString().contains("%!image!_")?
-        InstaImageViewer(
-          child: InteractiveViewer(
-        child: CachedNetworkImage(
-          fit: BoxFit.contain,
-             imageUrl: data['message'].toString().substring(9),
-             progressIndicatorBuilder: (context, url, downloadProgress) => 
-                     CircularProgressIndicator(value: downloadProgress.progress),
-             errorWidget: (context, url, error) => const Icon(Icons.error),
+                )
+                ),),],
           ),
-          ),
-        )
-        :
-         Text(
-          data['message'],
-        ),
-      )
-      ),),],
         ),
       ),
       ],  
@@ -810,6 +794,102 @@ Container(
 );
 
 
+  }
+  Widget _buildMessageInputNew(){
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.onBackground,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 5,
+            blurRadius: 7,
+            offset: Offset(0, 3)
+          )
+        ]
+      ),
+      child: Row(
+        children: [
+          IconButton(onPressed: (){
+          recordVoice(context);
+         },icon: Icon(Icons.multitrack_audio_rounded, color:Theme.of(context).primaryColor),),
+          Expanded(
+            child: TextField(
+              controller: textEditingController,
+              style: Theme.of(context).textTheme.titleSmall,
+              focusNode: FocusNode(skipTraversal: true),
+              onSubmitted: (value) {
+                sendMessage();
+              },
+              decoration: InputDecoration(
+                hintText: 'Write your message',
+                hintStyle: Theme.of(context).textTheme.titleSmall!.copyWith(
+                  color: Colors.grey[700]
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 18)
+              ),
+            ),
+          ),
+          SizedBox(width: 8,),
+          SpeedDial(
+            backgroundColor: Theme.of(context).colorScheme.onBackground,
+        foregroundColor: Theme.of(context).primaryColor,
+        animationDuration: Duration(milliseconds: 500),
+        icon: Icons.link,
+        overlayOpacity: 0.5,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.file_present_rounded, color: Theme.of(context).primaryColor),
+            label: "Send a File",
+            onTap: () {
+              sendFile();
+              debugPrint("File linking");
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.add_photo_alternate, color: Theme.of(context).primaryColor),
+            label: "Send an Image",
+            onTap: () {
+              sendImage();
+              debugPrint("Image linking");
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.audio_file_rounded, color: Theme.of(context).primaryColor),
+            label: "Send an Audio",
+            onTap: () {
+              debugPrint("Audio linking");
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.video_file_rounded, color: Theme.of(context).primaryColor,),
+            label: "Send a video",
+            onTap: () {
+              sendVideo();
+              debugPrint("sending a video");
+            },
+          ),
+          SpeedDialChild(
+            child: Icon(Icons.add_link_rounded, color: Theme.of(context).primaryColor,),
+            label: "Send a link",
+            onTap: () {
+              debugPrint("sending a link");
+            },
+          )
+        ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: GestureDetector(
+              child: IconButton(onPressed: (){sendMessage();}, icon: Icon(Icons.send_rounded,  color: Theme.of(context).primaryColor,)),
+             
+            ),
+          )
+        ],
+      ),
+    );
   }
   Widget _buildMessageInput(){
     return Row(
@@ -830,10 +910,6 @@ Container(
         Expanded(
           child: TextField(
             style: TextStyle(color: Theme.of(context).primaryColor,),
-  //         keyboardType: TextInputType.multiline,
-  // maxLines: null,
-  // minLines: null,
-  // textInputAction: TextInputAction.newline,
           focusNode: FocusNode(skipTraversal: true),
           controller: textEditingController,
           onSubmitted: (value) {

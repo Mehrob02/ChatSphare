@@ -61,6 +61,12 @@ class AuthService extends ChangeNotifier {
             .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
             .doc("my_contacts")
             .set({"contacts": []});
+            await firebaseFirestore
+            .collection('users')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
+            .doc("my_requests")
+            .set({"requests": []});
         try {
           await firebaseFirestore
               .collection("nickNames")
@@ -72,7 +78,7 @@ class AuthService extends ChangeNotifier {
           debugPrint("$e nickname");
         }
       } catch (e) {
-        debugPrint("token erroryyyy");
+        debugPrint("contacts error");
       }
       try {
         await firebaseFirestore

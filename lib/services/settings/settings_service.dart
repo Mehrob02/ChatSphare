@@ -21,7 +21,7 @@ class SettingsService extends ChangeNotifier {
   MaterialColor _appColor = Colors.deepPurple;
 
   SettingsService() : _email = FirebaseAuth.instance.currentUser?.email ?? '' {
-    _loadUserNickName();
+    loadUserNickName();
   }
 
   String get email => _email;
@@ -95,7 +95,7 @@ class SettingsService extends ChangeNotifier {
     wallpaperPath=newPath;
     notifyListeners();
   }
-  Future<void> _loadUserNickName() async {
+  Future<void> loadUserNickName() async {
     if (firebaseAuth.currentUser != null) {
       DocumentSnapshot nickNameSnapshot = await FirebaseFirestore.instance
           .collection("nickNames")
