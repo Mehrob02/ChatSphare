@@ -4,11 +4,12 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsphere/friend_request_page.dart';
+import 'package:chatsphere/model/message.dart';
 import 'package:chatsphere/notification_body.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/services/settings/settings_service.dart';
-import 'package:chatsphere/settings_page.dart';
-import 'package:chatsphere/vriables.dart';
+import 'package:chatsphere/pages/settings_page.dart';
+import 'package:chatsphere/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,11 +24,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'as math;
 
 import 'chat_page.dart';
-import 'services/auth/auth_service.dart';
+import '../services/auth/auth_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -257,60 +257,89 @@ return nickName;
   void dispose() {
     super.dispose();
   }
-void signOut(){
-final authService = Provider.of<AuthService>(context,listen: false);
-final settingsService = Provider.of<SettingsService>(context,listen: false);
-settingsService.colorChange(false);
-authService.signOut();
-// kIsWeb? RestartWeb() :
-}
 Future refresh()async{
   setState(() {});
 }
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
-    return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.secondary, title:
-     //  Text('User: ${settingsService.userNickName}', style:const TextStyle(color: Colors.white),),
-        Text('ChatSphere', style:const TextStyle(color: Colors.white,fontSize: 25),),
-      actions: [
-        IconButton(onPressed:()=> Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),)), icon: const Icon(Icons.settings, color: Colors.white,))
-      ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildRequestWidget(),
-          Expanded(child: _buildUserList()),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              child: const Text("Add Contact"),
-              onPressed: () {
-                addContactGetId();
-              }
+    return SafeArea(
+      child: Scaffold(
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  RichText(text: TextSpan(
+                   children: [
+                    TextSpan(text: "Chat", style: TextStyle(fontSize: 32, color: Theme.of(context).primaryColor, fontWeight: FontWeight.w800)),
+                    TextSpan(text: "Sphere", style: TextStyle(fontSize: 32, color: Colors.grey),)
+                   ]
+                  )),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),));}, icon: Icon(Icons.settings,color: Theme.of(context).primaryColor,)),
+                    ))
+                ],
               ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              child: const Text("sign out"),
-              onPressed: () {
-                signOut();
-              }
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildRequestWidget(),
+                  Expanded(child: _buildUserList()),
+                ],
               ),
-          ),
-        ],
-      )
+            ),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton:  Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                iconSize: IconTheme.of(context).size!*2,
+                icon: Icon(Icons.add_comment_rounded,),
+                color: Theme.of(context).primaryColor,
+                onPressed: () {
+                  addContactGetId();
+                }
+                ),
+            ),
+        // floatingActionButton: Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        //   crossAxisAlignment: CrossAxisAlignment.center,
+        //   children: [
+        //     Padding(
+        //       padding: const EdgeInsets.all(8.0),
+        //       child: ElevatedButton(
+        //         child: const Text("Add Contact"),
+        //         onPressed: () {
+        //           addContactGetId();
+        //         }
+        //         ),
+        //     ),
+        //     Padding(
+        //       padding: const EdgeInsets.all(8.0),
+        //       child: ElevatedButton(
+        //         child: const Text("sign out"),
+        //         onPressed: () {
+        //           signOut();
+        //         }
+        //         ),
+        //     ),
+        //   ],
+        // )
+      ),
     );
   }
   Widget _buildRequestWidget(){
@@ -360,6 +389,7 @@ Future refresh()async{
       return const Text("loading");
     }
     else{
+      List<QueryDocumentSnapshot> users = snapshot.data!.docs;
       return RefreshIndicator(
         onRefresh: ()=>refresh(),
         child: ListView(
@@ -369,6 +399,35 @@ Future refresh()async{
     }
   },);
   }
+  Widget _buildLastMessage(String reciverUserID){
+    return StreamBuilder<QuerySnapshot>(
+      stream: chatService.getMessages(reciverUserID, FirebaseAuth.instance.currentUser!.uid),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+                        //if data is loading
+                        case ConnectionState.waiting:
+                        case ConnectionState.none:
+                          return const SizedBox();
+
+                        //if some or all data is loaded then show it
+                        case ConnectionState.active:
+                        case ConnectionState.done:
+        return _buildLastMessageItem(snapshot.data!.docs.reversed.toList().first);
+        }
+      
+    },);
+  }
+  Widget _buildLastMessageItem(DocumentSnapshot documentSnapshot,){
+ Map<String,dynamic> data = documentSnapshot.data() as Map<String,dynamic>;
+ String sender = (data['senderId']==FirebaseAuth.instance.currentUser!.uid?"You: ":"");
+ switch (data['messageType']) {
+   case "text":
+   return Text(sender+(data["message"]??""), style: TextStyle(fontWeight: FontWeight.bold),);
+   default:
+   return Text(sender+(data['messageType']??(data["message"]??"")), style: TextStyle(fontWeight: FontWeight.bold));
+ }
+ 
+ }
  Widget _buildUserListItem(DocumentSnapshot documentSnapshot){
     Map<String,dynamic> data = documentSnapshot.data()! as Map<String,dynamic>;
     Timestamp? lastVisited = data['lastVisited'];
@@ -378,16 +437,16 @@ Future refresh()async{
     if(auth.currentUser!.email!=data['email']&&myContacts.contains(documentSnapshot.id)){
    //   addContact(documentSnapshot.id);
       return Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(6.0),
         child: ListTile(
-      //subtitle: Text("${data['email']}"),
+            subtitle: _buildLastMessage(data['uid']),
           leading: SizedBox(
             width: 50,
             height: 50,
             child: FutureBuilder<String>(
                 future: _getProfileImageUrl(data['uid']),
                 builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+            if (!snapshot.hasData||kIsWeb) {
               return CircleAvatar(
                 radius: 75,
                 backgroundImage: CachedNetworkImageProvider(

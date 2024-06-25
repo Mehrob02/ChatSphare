@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, unused_import
 
 import 'dart:io';
 
@@ -11,6 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import 'pages/home_page.dart';
+import 'services/auth/auth_service.dart';
 import 'services/settings/settings_service.dart';
 
 class AccountViewPage extends StatefulWidget {
@@ -110,6 +112,13 @@ class _AccountViewPageState extends State<AccountViewPage> {
     }
   }
   }
+  void signOut(){
+final authService = Provider.of<AuthService>(context,listen: false);
+final settingsService = Provider.of<SettingsService>(context,listen: false);
+settingsService.colorChange(false);
+authService.signOut();
+// kIsWeb? RestartWeb() :
+}
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
@@ -216,7 +225,17 @@ class _AccountViewPageState extends State<AccountViewPage> {
           debugPrint("Shoud Copy");});}, icon: Icon(Icons.copy))
               ],
             ),
-            
+             Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              child: const Text("sign out"),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+                signOut();
+              }
+              ),
+          ),
           ],
         ),
       ),

@@ -1,10 +1,10 @@
-// ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, use_build_context_synchronously
+// ignore_for_file: library_private_types_in_public_api, prefer_const_constructors, use_build_context_synchronously, unused_import
 
 import 'dart:async';
 import 'dart:io';
 
 import 'package:chatsphere/audio_player.dart';
-import 'package:chatsphere/vriables.dart';
+import 'package:chatsphere/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sound_record/flutter_sound_record.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:just_audio/just_audio.dart' as ap;
+import 'package:lottie/lottie.dart';
 
 import 'model/message.dart';
 import 'notification_body.dart';
@@ -72,10 +73,23 @@ class _AudioRecorderState extends State<AudioRecorder> {
                 _buildText(),
               ],
             ),
-            if (_amplitude != null) ...<Widget>[
+            if ((_amplitude != null)&&kDebugMode) ...<Widget>[
               const SizedBox(height: 40),
               Text('Current: ${_amplitude?.current ?? 0.0}'),
               Text('Max: ${_amplitude?.max ?? 0.0}'),
+              // SizedBox(
+              // width: 100,
+              // height: 100,
+              // child:
+              // _isRecording ? 
+              // Lottie.asset(
+              //  !kIsWeb? "assets/recording.json"
+              //  :"recording.json",
+              //  repeat: true,
+              //  reverse: true
+              // )
+              //  : Container(),
+           // ),
             ],
           ],
         ),

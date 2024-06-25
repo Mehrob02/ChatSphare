@@ -65,6 +65,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.19"
+  audio_wave_url_package:
+    dependency: "direct main"
+    description:
+      name: audio_wave_url_package
+      sha256: cdfd60318538b6257f5440ac90b688d0f1791b23b8b87f0fd409329af2d047e6
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.34"
   audioplayers:
     dependency: "direct main"
     description:
@@ -305,6 +313,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.4.3+1"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.5"
   fake_async:
     dependency: transitive
     description:
@@ -489,6 +505,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.9.7"
+  fl_chart:
+    dependency: "direct main"
+    description:
+      name: fl_chart
+      sha256: d0f0d49112f2f4b192481c16d05b6418bd7820e021e265a3c22db98acf7ed7fb
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.68.0"
   floating_menu_panel:
     dependency: "direct main"
     description:
@@ -510,14 +534,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
-  flutter_downloader:
+  flutter_file_downloader:
     dependency: "direct main"
     description:
-      name: flutter_downloader
-      sha256: "188d921f78471cb28ec2346bcf4045a27a516e384e2bfc9b4be12ae12d3ff8c8"
+      name: flutter_file_downloader
+      sha256: "813f4a31c0a15fbb67209c8e6c80fa332465b9e57a1ca043a9fce30994a7b7c6"
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.7"
+    version: "2.0.0"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -624,6 +648,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  html_character_entities:
+    dependency: transitive
+    description:
+      name: html_character_entities
+      sha256: "0eaf2acb67feeae8aba67c113aedbda71a57a36c38e3670fd677ec26e397faa3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0+1"
   http:
     dependency: "direct main"
     description:
@@ -728,6 +760,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.19.0"
   io:
     dependency: transitive
     description:
@@ -812,10 +852,10 @@ packages:
     dependency: "direct main"
     description:
       name: lottie
-      sha256: a93542cc2d60a7057255405f62252533f8e8956e7e06754955669fd32fb4b216
+      sha256: "1f0ce68112072d66ea271a9841994fa8d16442e23d8cf8996c9fa74174e58b4e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "3.0.0"
   matcher:
     dependency: transitive
     description:
@@ -1088,6 +1128,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  recursive_regex:
+    dependency: transitive
+    description:
+      name: recursive_regex
+      sha256: f7252e3d3dfd1665e594d9fe035eca6bc54139b1f2fee38256fa427ea41adc60
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   rxdart:
     dependency: transitive
     description:
@@ -1213,6 +1261,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
+  speed_test_dart:
+    dependency: "direct main"
+    description:
+      name: speed_test_dart
+      sha256: "201ebc2b659985c6f795e42c3fe4677a47c639c0e12e4f3b10782c614e95a630"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4+1"
   sqflite:
     dependency: transitive
     description:
@@ -1253,6 +1309,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  sync:
+    dependency: transitive
+    description:
+      name: sync
+      sha256: f2ebb89eac969abb02b498562a35c4da63d6843396c4fe81948cd06a76845fce
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0"
+  syncfusion_flutter_core:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_core
+      sha256: "3979f0b1c5a97422cadae52d476c21fa3e0fb671ef51de6cae1d646d8b99fe1f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.4.54"
+  syncfusion_flutter_sliders:
+    dependency: transitive
+    description:
+      name: syncfusion_flutter_sliders
+      sha256: "13a3931ef2d61b94442ce1c7745702f143f2866e3c9b71cb99e08667dba0b327"
+      url: "https://pub.dev"
+    source: hosted
+    version: "20.4.54"
   synchronized:
     dependency: transitive
     description:
@@ -1453,6 +1533,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.5.0"
+  xml_parser:
+    dependency: transitive
+    description:
+      name: xml_parser
+      sha256: "5db4f4a1640320855caccad9c6de5a371c195ca36e703e977652e86f52424829"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   yaml:
     dependency: transitive
     description:

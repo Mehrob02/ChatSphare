@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, unused_import
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, unused_import, use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:io';
@@ -12,7 +12,7 @@ import 'package:chatsphere/mytests/testfile2.dart';
 import 'package:chatsphere/record.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/video_view.dart';
-import 'package:chatsphere/vriables.dart';
+import 'package:chatsphere/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,26 +21,29 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:insta_image_viewer/insta_image_viewer.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'file_view.dart';
-import 'notification_body.dart';
-import 'services/settings/settings_service.dart';
+import '../file_view.dart';
+import '../notification_body.dart';
+import '../services/settings/settings_service.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName});
+  const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName, this.profileImageUrl});
   final String reciverUserEmail;
   final String reciverUserID;
   final String reciverUserName;
+  final String? profileImageUrl;
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
@@ -73,105 +76,135 @@ class _ChatPageState extends State<ChatPage> {
   }
  }
  
-   Future<void> sendImage() async {
+  double _uploadProgress = 0;
+  final int maxFileSize = 150 * 1024 * 1024; // 150 MB
+
+  Future<void> sendImage() async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery); 
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage != null) {
-     
       File imageFile = File(pickedImage.path);
-      
       final storageReference = FirebaseStorage.instance.ref().child('images/${DateTime.now()}.jpg');
       UploadTask uploadTask = storageReference.putFile(imageFile);
-      await uploadTask.whenComplete(() => null);
 
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        setState(() {
+          _uploadProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        });
+      });
+
+      await uploadTask.whenComplete(() => setState(() {
+        _uploadProgress = 0;
+      }));
       String imageUrl = await storageReference.getDownloadURL();
-      await chatService.sendMessage(widget.reciverUserID, imageUrl,replyingToMessage, MessageType.image,replyToId);
+      await chatService.sendMessage(widget.reciverUserID, imageUrl, replyingToMessage, MessageType.image, replyToId);
+
       try {
         final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
-    final token = tokenDoc.data()?['token'];
-      chatService.sendNotification(
-       serverKey ,
-         "Sent an image",
-          token);
-     } catch (e) {
-       debugPrint("notification didn't sent");
-     }
-    }
-     if(replyingToMessage!=null){
-      setState(() {
-       replyingToMessage=null;
-       replyToId=null;
-     });
-     }
-}
-Future<void> sendVideo() async {
-  final picker = ImagePicker();
-  final pickedVideo = await picker.pickVideo(source: ImageSource.gallery);
+        final token = tokenDoc.data()?['token'];
+        chatService.sendNotification(serverKey, "Sent an image", token);
+      } catch (e) {
+        debugPrint("Notification didn't send");
+      }
 
-  if (pickedVideo != null) {
-    File videoFile = File(pickedVideo.path);
-
-    final storageReference = FirebaseStorage.instance.ref().child('videos/${DateTime.now()}.mp4');
-    UploadTask uploadTask = storageReference.putFile(videoFile);
-    await uploadTask.whenComplete(() => null);
-
-    String videoUrl = await storageReference.getDownloadURL();
-    await chatService.sendMessage(widget.reciverUserID, videoUrl, replyingToMessage, MessageType.video,replyToId);
-
-    try {
-      final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
-      final token = tokenDoc.data()?['token'];
-      await chatService.sendNotification(
-        serverKey,
-        "Sent a video",
-        token,
-      );
-    } catch (e) {
-      debugPrint("Notification didn't send");
+      if (replyingToMessage != null) {
+        setState(() {
+          replyingToMessage = null;
+          replyToId = null;
+        });
+      }
     }
   }
 
-  if (replyingToMessage != null) {
-    setState(() {
-      replyingToMessage = null;
-      replyToId=null;
-    });
-  }
-}
-Future<void> sendFile() async {
-  final result = await FilePicker.platform.pickFiles();
+  Future<void> sendVideo() async {
+    final picker = ImagePicker();
+    final pickedVideo = await picker.pickVideo(source: ImageSource.gallery);
 
-  if (result != null) {
-    File file = File(result.files.single.path!);
+    if (pickedVideo != null) {
+      File videoFile = File(pickedVideo.path);
+      final storageReference = FirebaseStorage.instance.ref().child('videos/${DateTime.now()}.mp4');
+      UploadTask uploadTask = storageReference.putFile(videoFile);
 
-    final storageReference = FirebaseStorage.instance.ref().child('files/${DateTime.now()}');
-    UploadTask uploadTask = storageReference.putFile(file);
-    await uploadTask.whenComplete(() => null);
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        setState(() {
+          _uploadProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        });
+      });
 
-    String fileUrl = await storageReference.getDownloadURL();
-    await chatService.sendMessage(widget.reciverUserID, fileUrl, replyingToMessage, MessageType.file,replyToId);
+      await uploadTask.whenComplete(() => setState(() {
+        _uploadProgress = 0;
+      }));
+      String videoUrl = await storageReference.getDownloadURL();
+      await chatService.sendMessage(widget.reciverUserID, videoUrl, replyingToMessage, MessageType.video, replyToId);
 
-    try {
-      final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
-      final token = tokenDoc.data()?['token'];
-      await chatService.sendNotification(
-        serverKey,
-        "Sent a file",
-        token,
-      );
-    } catch (e) {
-      debugPrint("Notification didn't send");
+      try {
+        final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
+        final token = tokenDoc.data()?['token'];
+        chatService.sendNotification(serverKey, "Sent a video", token);
+      } catch (e) {
+        debugPrint("Notification didn't send");
+      }
+
+      if (replyingToMessage != null) {
+        setState(() {
+          replyingToMessage = null;
+          replyToId = null;
+        });
+      }
     }
   }
 
-  if (replyingToMessage != null) {
-    setState(() {
-      replyingToMessage = null;
-      replyToId=null;
-    });
+  Future<void> sendFile() async {
+    final result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      int fileSize = await file.length();
+
+      if (fileSize > maxFileSize) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('File size exceeds 150 MB. Please select a smaller file.'),
+          ),
+        );
+        return;
+      }
+
+      String fileName = result.files.single.name; // Получаем только имя файла
+      final storageReference = FirebaseStorage.instance.ref().child('files/$fileName');
+      UploadTask uploadTask = storageReference.putFile(file);
+
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        setState(() {
+          _uploadProgress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        });
+      });
+
+      await uploadTask.whenComplete(() => setState(() {
+        _uploadProgress = 0;
+      }));
+
+      String fileUrl = await storageReference.getDownloadURL();
+      await chatService.sendMessage(widget.reciverUserID, fileUrl, replyingToMessage, MessageType.file, replyToId, fileName: fileName);
+
+      try {
+        final tokenDoc = await firebaseFirestore.collection("users_tokens").doc(widget.reciverUserID).get();
+        final token = tokenDoc.data()?['token'];
+        chatService.sendNotification(serverKey, "Sent a file", token);
+      } catch (e) {
+        debugPrint("Notification didn't send");
+      }
+
+      if (replyingToMessage != null) {
+        setState(() {
+          replyingToMessage = null;
+          replyToId = null;
+        });
+      }
+    }
   }
-}
+
 Future<void> deleteImage(String imageUrl) async { 
       await FirebaseStorage.instance.refFromURL(imageUrl).delete();
 }
@@ -209,10 +242,12 @@ Future<void> deleteFile(String fileUrl) async {
   }
   @override
   void initState(){
+  //  controller.addListener(_scrollListener);
     super.initState();
   } 
   @override
   void dispose() {
+   //  controller.removeListener(_scrollListener);
    controller.dispose();
     super.dispose();
   }
@@ -310,16 +345,55 @@ void viewImage(BuildContext context, String url) {
    } catch (e) {
      debugPrint("didnt go to message $itemId");
    }
-      
-    
+  }
+  Future<String> _getProfileImageUrl(String recieverId) async {
+    try {
+      final ref = FirebaseStorage.instance.ref('user_profile_images/$recieverId.jpg');
+      String url = await ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      // Если изображение не найдено или произошла ошибка, возвращаем URL изображения по умолчанию
+      return "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png";
+    }
   }
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
-    
     return Scaffold(
      // backgroundColor: Colors.indigo,
-      appBar: AppBar(title: Text('Chat with ${widget.reciverUserName}', style:const TextStyle(color: Colors.white),),backgroundColor: Theme.of(context).colorScheme.secondary),
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            FutureBuilder<String>(
+                future: _getProfileImageUrl(widget.reciverUserID),
+                builder: (context, snapshot) {
+            if (snapshot.hasData&&!kIsWeb) {
+               String profileImageUrl = snapshot.data!;
+            return GestureDetector(
+              onTap: () {
+                viewImage(context, profileImageUrl);
+                debugPrint("ViewProfile");
+              },
+              child: CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(profileImageUrl),
+              ),
+            );
+            }else{return CircleAvatar(
+                backgroundImage: CachedNetworkImageProvider(
+                    "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
+              );
+           }
+                },
+              ),
+             
+            SizedBox(width: 4,),
+            Text(widget.reciverUserName, style:const TextStyle(color: Colors.white),),
+          ],
+        ),
+        backgroundColor: Theme.of(context).colorScheme.secondary),
       body: Container(
         decoration: settingsService.wallpaperPath!="none"? BoxDecoration(
           image: DecorationImage(fit: BoxFit.cover, image:AssetImage(settingsService.wallpaperPath))
@@ -349,7 +423,12 @@ void viewImage(BuildContext context, String url) {
                 ],
               ),
             ),
-              _buildMessageInputNew()
+            if (_uploadProgress > 0)
+              Text("Upload Progress: ${_uploadProgress.toStringAsFixed(2)}%", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 28),),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                child: _buildMessageInputNew(),
+              )
           ],
         ),
       ),
@@ -381,15 +460,15 @@ void viewImage(BuildContext context, String url) {
     childCount: snapshot.data!.docs.length,
   )),
 
-         //   if (_scrollController.offset >= _scrollController.position.maxScrollExtent)
-        //     Positioned(
-        //       right: 30,
-        //       bottom: 30,
-        //       child: FloatingActionButton(
-        //         onPressed: _scrollToEnd,
-        //         child: const Icon(Icons.arrow_downward),
-        //       ),
-        //     ),
+           if (_scrollController.hasClients &&(controller.offset >= controller.position.maxScrollExtent))
+            Positioned(
+              right: 30,
+              bottom: 30,
+              child: FloatingActionButton(
+                onPressed: _scrollToEnd,
+                child: const Icon(Icons.arrow_downward),
+              ),
+            ),
            ],
          );
         }
@@ -522,8 +601,8 @@ Container(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              IconButton(onPressed: (){deleteFile(data['message']).whenComplete(()=>settingsService.showFloatingMessage(context, "sucessifully deleted")); removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
-              FileView(fileUrl:data['message']),
+             if(aligment== Alignment.centerRight) IconButton(onPressed: (){deleteFile(data['message']).whenComplete(()=>settingsService.showFloatingMessage(context, "sucessifully deleted")); removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
+              FileView(fileUrl:data['message'],fileName: data['fileName'],),
             ],
           )
           :
@@ -531,54 +610,6 @@ Container(
           VideoView(videoUrl: data['message'],)
           :
           CupertinoContextMenu(
-          //   previewBuilder: (BuildContext context, animation, child) {
-          //     final MessageType messageType = defineType(data['messageType']);
-          //     switch (messageType) {
-          //       case MessageType.file:
-          //         return Scaffold(
-          //           backgroundColor: Colors.transparent,
-          //           body: Center(
-          //             child: Text("file"),
-          //           ),
-          //         );
-          //       case MessageType.audio:
-          //         return Scaffold(
-          //           backgroundColor: Colors.transparent,
-          //           body: Center(
-          //             child: Text("Audio"),
-          //           ),
-          //         );
-          //       case MessageType.video:
-          //         return Scaffold(
-          //           backgroundColor: Colors.transparent,
-          //           body: Center(
-          //             child: Text("video"),
-          //           ),
-          //         );
-          //       case MessageType.text:
-          //         return Scaffold(
-          //           backgroundColor: Colors.transparent,
-          //           body: Center(child: SelectableText(data['message'],style: const TextStyle(fontSize: 30),
-          //               maxLines: 4,)),
-          //         );
-          //       case MessageType.image:
-          //         return Scaffold(
-          //           backgroundColor: Colors.transparent,
-          //           body: Center(
-          //             child: CachedNetworkImage(
-          //  fit: BoxFit.contain,
-          //  imageUrl: data['message'],
-          //  progressIndicatorBuilder: (context, url, downloadProgress) => 
-          //          CircularProgressIndicator(value: downloadProgress.progress),
-          //  errorWidget: (context, url, error) => const Icon(Icons.error),
-          //   )),
-          //         );  
-          //       default:
-          //          return Scaffold(
-          //           body: Center(child: Text("undefined")),
-          //          );
-          //     }     
-          //   },
           actions: [
             CupertinoContextMenuAction(child:
             Row(

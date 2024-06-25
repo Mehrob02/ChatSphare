@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-enum MessageType{text,file,image,video,audio,link}
+enum MessageType{text,file,image,video,audio,link,code}
 class Message{
   final String senderId;
   final String receiverId;
@@ -9,11 +9,27 @@ class Message{
   final String? replyTo;
   final String? replyToId;
   final MessageType messageType;
+  final String? fileName;
 
-  Message(this.senderId, this.senderEmail, this.receiverId, this.timestamp, this.message, this.replyTo, this.messageType, this.replyToId,);
+  Message(this.senderId, this.senderEmail, this.receiverId, this.timestamp, this.message, this.replyTo, this.messageType, this.replyToId,{this.fileName});
 
  Map<String,dynamic> toMap(){
-  return {
+  switch (messageType) {
+    case MessageType.file:
+    case MessageType.video:  
+    return {
+    'senderId':senderId,
+    'senderEmail':senderEmail,
+    'receiverId':receiverId,
+    'message':message,
+    'timestamp':timestamp,
+    'messageType':messageType.name,
+    'fileName':fileName??'undefined',
+    if(replyTo!=null)'replyTo':replyTo,
+    if(replyToId!=null)'replyToId':replyToId
+  };
+    default:
+     return {
     'senderId':senderId,
     'senderEmail':senderEmail,
     'receiverId':receiverId,
@@ -23,5 +39,7 @@ class Message{
     if(replyTo!=null)'replyTo':replyTo,
     if(replyToId!=null)'replyToId':replyToId
   };
+  }
+ 
  }
 }

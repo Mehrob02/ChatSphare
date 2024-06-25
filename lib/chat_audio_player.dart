@@ -1,5 +1,8 @@
+// ignore_for_file: unused_import, deprecated_member_use
+
 import 'dart:async';
 
+import 'package:audio_wave_url_package/voice_message_package.dart' as vs;
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -11,12 +14,11 @@ class ChatAudioPlayer extends StatefulWidget {
 }
 
 class _ChatAudioPlayerState extends State<ChatAudioPlayer> {
-  final AudioPlayer _audioPlayer=AudioPlayer();
+ final AudioPlayer _audioPlayer=AudioPlayer();
   late StreamSubscription<PlayerState> _playerStateChangedSubscription;
- 
    Duration position = Duration.zero;
    Duration? duration = Duration.zero;
-  bool isPaused= true;
+ bool isPaused= true;
   @override
   void initState() {
     _playerStateChangedSubscription = _audioPlayer.playerStateStream.listen((PlayerState state) async {
@@ -48,14 +50,15 @@ class _ChatAudioPlayerState extends State<ChatAudioPlayer> {
 
   @override
   void dispose() {
-    _playerStateChangedSubscription.cancel();
-    _audioPlayer.dispose();
+     _playerStateChangedSubscription.cancel();
+     _audioPlayer.dispose();
     super.dispose();
   }
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width*0.5,
+      width: MediaQuery.of(context).size.width*0.4,
+      
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -66,10 +69,11 @@ class _ChatAudioPlayerState extends State<ChatAudioPlayer> {
             child: Slider(
              onChanged: (double v) {
         },
-        value: 0.0,
+        value:0.0,
               ),
           ),
         ],
-      ));
+      )
+      );
   }
 }

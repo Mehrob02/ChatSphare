@@ -14,12 +14,12 @@ class ChatService extends ChangeNotifier{
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore firebaseFirestore =FirebaseFirestore.instance;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  Future<void> sendMessage(String receiverId, String message, String? replyTo,MessageType messageType, String? replyToId)async{
+  Future<void> sendMessage(String receiverId, String message, String? replyTo,MessageType messageType, String? replyToId,{String? fileName})async{
     final String currentUserId = firebaseAuth.currentUser!.uid;
     final String currentUserEmail = firebaseAuth.currentUser!.email.toString();
     final Timestamp timestamp = Timestamp.now();
 
-    Message newMessage = Message(currentUserId, currentUserEmail, receiverId, timestamp, message, replyTo, messageType, replyToId);
+    Message newMessage = Message(currentUserId, currentUserEmail, receiverId, timestamp, message, replyTo, messageType, replyToId, fileName: fileName);
 
     List <String> ids= [currentUserId,receiverId];
     ids.sort();

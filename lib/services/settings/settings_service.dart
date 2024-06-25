@@ -13,10 +13,10 @@ class SettingsService extends ChangeNotifier {
   bool _colorChanger = false;
   bool get colorChanger => _colorChanger;
 
-  String _wallpaperPath="none";
-  String get wallpaperPath=> _wallpaperPath;
+  String _wallpaperPath = "none";
+  String get wallpaperPath => _wallpaperPath;
 
-  final String _email;
+  String _email;
   String _userNickName = '';
   MaterialColor _appColor = Colors.deepPurple;
 
@@ -34,13 +34,15 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeWallpaper(int wallpaperIndex){
-    _wallpaperPath = kIsWeb? "wallpapers/wallpaper-${wallpaperIndex+1}.jpeg":"assets/wallpapers/wallpaper-${wallpaperIndex+1}.jpeg";
+  void changeWallpaper(int wallpaperIndex) {
+    _wallpaperPath = kIsWeb
+        ? "wallpapers/wallpaper-${wallpaperIndex + 1}.jpeg"
+        : "assets/wallpapers/wallpaper-${wallpaperIndex + 1}.jpeg";
     saveWallpaperPath();
     notifyListeners();
   }
 
-  void deleteWallpaper(){
+  void deleteWallpaper() {
     _wallpaperPath = "none";
     notifyListeners();
     saveWallpaperPath();
@@ -50,21 +52,30 @@ class SettingsService extends ChangeNotifier {
     _appColor = newAppColor;
     notifyListeners();
   }
+
   set wallpaperPath(String newPath) {
     _wallpaperPath = newPath;
     notifyListeners();
   }
-  set downloadedFiles(List<String> newFile) {
-    downloadedFiles = newFile;
+
+  set email(String newUserEmail) {
+    _email = newUserEmail;
+  }
+
+  set nickname(String value) {
+    _userNickName = value;
     notifyListeners();
   }
+
   void changeAppColor(MaterialColor newAppColor) {
     appColor = newAppColor;
     saveAppColor();
   }
- Future<String> getProfileImageUrl() async {
+
+  Future<String> getProfileImageUrl() async {
     try {
-      final ref = FirebaseStorage.instance.ref('user_profile_images/${firebaseAuth.currentUser!.uid}.jpg');
+      final ref = FirebaseStorage.instance
+          .ref('user_profile_images/${firebaseAuth.currentUser!.uid}.jpg');
       String url = await ref.getDownloadURL();
       return url;
     } catch (e) {
@@ -72,6 +83,7 @@ class SettingsService extends ChangeNotifier {
       return "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png";
     }
   }
+
   void saveAppColor() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setInt('appColor', appColor.value);
@@ -92,9 +104,10 @@ class SettingsService extends ChangeNotifier {
   Future<void> loadWallpaperPath() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String newPath = prefs.getString('wallpaperPath') ?? "none";
-    wallpaperPath=newPath;
+    wallpaperPath = newPath;
     notifyListeners();
   }
+
   Future<void> loadUserNickName() async {
     if (firebaseAuth.currentUser != null) {
       DocumentSnapshot nickNameSnapshot = await FirebaseFirestore.instance
@@ -102,23 +115,34 @@ class SettingsService extends ChangeNotifier {
           .doc(firebaseAuth.currentUser!.uid)
           .get();
       if (nickNameSnapshot.exists) {
-        Map<String, dynamic> nickNamesData = nickNameSnapshot.data() as Map<String, dynamic>;
+        Map<String, dynamic> nickNamesData =
+            nickNameSnapshot.data() as Map<String, dynamic>;
         _userNickName = nickNamesData['nickName'] ?? '';
         notifyListeners();
       }
     }
   }
-  void showFloatingMessage(BuildContext context, String message,{int? maxlines, VoidCallback? onTap}){
- InAppNotification.show(
-                child: NotificationBody(child: Text(message, maxLines: maxlines,),),
-              context: context,
-              onTap: onTap,
-                );
+
+  void showFloatingMessage(BuildContext context, String message,
+      {int? maxlines, VoidCallback? onTap}) {
+    InAppNotification.show(
+      child: NotificationBody(
+        child: Text(
+          message,
+          maxLines: maxlines,
+        ),
+      ),
+      context: context,
+      onTap: onTap,
+    );
   }
-Future <void> init()async{
- await loadColor();
- await loadWallpaperPath();
-}
+
+  Future<void> init() async {
+    await loadColor();
+    await loadWallpaperPath();
+    await loadUserNickName();
+  }
+
   MaterialColor createMaterialColor(Color color) {
     List strengths = <double>[.05];
     Map<int, Color> swatch = <int, Color>{};
