@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsphere/pages/security_page.dart';
+import 'package:chatsphere/pages/settings_page/pages/security_page.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,9 +12,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../account_view_page.dart';
+import 'account_view_page.dart';
 import 'customisation_page.dart';
-import '../services/settings/settings_service.dart';
+import '../../../services/settings/settings_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

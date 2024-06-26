@@ -9,13 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'internet_provider.dart';
+import 'services/internet_provider/internet_provider.dart';
 import 'services/auth/auth_service.dart';
 import 'services/settings/settings_service.dart';
 import 'services/auth/auth_gate.dart';
 import 'package:chatsphere/api/flutter_api.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
-import 'firebase_options.dart';
+import 'services/firebase_options/firebase_options.dart';
 
 List<IconData> icons = [
   Icons.circle,

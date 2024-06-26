@@ -4,14 +4,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsphere/chat_audio_player.dart';
-import 'package:chatsphere/message_box.dart';
-import 'package:chatsphere/model/message.dart';
+import 'package:chatsphere/pages/chat_page/widgets/chat_audio_player.dart';
+import 'package:chatsphere/pages/chat_page/widgets/message_box.dart';
+import 'package:chatsphere/models/message.dart';
 import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/mytests/testfile2.dart';
-import 'package:chatsphere/record.dart';
+import 'package:chatsphere/pages/chat_page/widgets/record.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
-import 'package:chatsphere/video_view.dart';
+import 'package:chatsphere/pages/chat_page/widgets/video_view.dart';
 import 'package:chatsphere/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
@@ -34,9 +34,9 @@ import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../file_view.dart';
-import '../notification_body.dart';
-import '../services/settings/settings_service.dart';
+import 'widgets/file_view.dart';
+import '../../widgets/notification_body.dart';
+import '../../services/settings/settings_service.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName, this.profileImageUrl});

@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:chatsphere/pages/home_page.dart';
+import 'package:chatsphere/pages/home_page/pages/home_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

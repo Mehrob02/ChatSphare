@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:chatsphere/audio_player.dart';
+import 'package:chatsphere/pages/chat_page/widgets/audio_player.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound_record/flutter_sound_record.dart';

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../services/settings/settings_service.dart';
+import '../../../services/settings/settings_service.dart';
 
 class CustomisationPage extends StatefulWidget {
   const CustomisationPage({super.key});

@@ -3,7 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:chatsphere/audio_player.dart';
+import 'package:chatsphere/pages/chat_page/widgets/audio_player.dart';
 import 'package:chatsphere/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -14,9 +14,9 @@ import 'package:in_app_notification/in_app_notification.dart';
 import 'package:just_audio/just_audio.dart' as ap;
 import 'package:lottie/lottie.dart';
 
-import 'model/message.dart';
-import 'notification_body.dart';
-import 'services/chat/chat_service.dart';
+import '../../../models/message.dart';
+import '../../../widgets/notification_body.dart';
+import '../../../services/chat/chat_service.dart';
 
 
 

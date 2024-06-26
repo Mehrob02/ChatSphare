@@ -1,8 +1,8 @@
 // ignore_for_file: prefer_const_constructors, unused_import
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsphere/model/message.dart';
-import 'package:chatsphere/notification_body.dart';
+import 'package:chatsphere/models/message.dart';
+import 'package:chatsphere/widgets/notification_body.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:photo_view/photo_view.dart';

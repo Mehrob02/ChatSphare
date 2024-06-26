@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:audio_wave_url_package/voice_message_package.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +27,7 @@ class MyApp extends StatelessWidget {
                   onPlay: () {},
                   audioSrc:
                       'https://dl.solahangs.com/Music/1403/02/H/128/Hiphopologist%20-%20Shakkak%20%28128%29.mp3',
-                  header: {},
+                  header: const {},
                 ),
                 SizedBox(height: 80),
               ],

@@ -3,12 +3,12 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:chatsphere/friend_request_page.dart';
-import 'package:chatsphere/model/message.dart';
-import 'package:chatsphere/notification_body.dart';
+import 'package:chatsphere/pages/home_page/pages/friend_request_page.dart';
+import 'package:chatsphere/models/message.dart';
+import 'package:chatsphere/widgets/notification_body.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/services/settings/settings_service.dart';
-import 'package:chatsphere/pages/settings_page.dart';
+import 'package:chatsphere/pages/settings_page/pages/settings_page.dart';
 import 'package:chatsphere/variables.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,8 +23,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'as math;
 
-import 'chat_page.dart';
-import '../services/auth/auth_service.dart';
+import '../../chat_page/chat_page.dart';
+import '../../../services/auth/auth_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
