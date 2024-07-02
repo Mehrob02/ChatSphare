@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, unused_import, use_build_context_synchronously
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, unused_element, prefer_const_literals_to_create_immutables, unused_import, use_build_context_synchronously, non_constant_identifier_names, unused_local_variable
 
 import 'dart:async';
 import 'dart:io';
@@ -7,7 +7,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsphere/pages/chat_page/widgets/chat_audio_player.dart';
 import 'package:chatsphere/pages/chat_page/widgets/message_box.dart';
 import 'package:chatsphere/models/message.dart';
-import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/mytests/testfile2.dart';
 import 'package:chatsphere/pages/chat_page/widgets/record.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
@@ -37,13 +36,16 @@ import 'package:url_launcher/url_launcher.dart';
 import 'widgets/file_view.dart';
 import '../../widgets/notification_body.dart';
 import '../../services/settings/settings_service.dart';
+import 'widgets/profile_view.dart';
+import 'widgets/search_message.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName, this.profileImageUrl});
+  const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName, this.profileImageUrl, this.about});
   final String reciverUserEmail;
   final String reciverUserID;
   final String reciverUserName;
   final String? profileImageUrl;
+  final String? about;
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
@@ -55,6 +57,7 @@ class _ChatPageState extends State<ChatPage> {
   final FirebaseFirestore firebaseFirestore =FirebaseFirestore.instance;
   final ScrollController _scrollController = ScrollController();
   final FlutterListViewController controller = FlutterListViewController();
+  final PageController pageController = PageController();
   String? replyingToMessage;
   String? replyToId;
  MessageType defineType(String value){
@@ -79,9 +82,9 @@ class _ChatPageState extends State<ChatPage> {
   double _uploadProgress = 0;
   final int maxFileSize = 150 * 1024 * 1024; // 150 MB
 
-  Future<void> sendImage() async {
+  Future<void> sendImage(ImageSource imageSource) async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+    final pickedImage = await picker.pickImage(source: imageSource);
 
     if (pickedImage != null) {
       File imageFile = File(pickedImage.path);
@@ -116,7 +119,33 @@ class _ChatPageState extends State<ChatPage> {
       }
     }
   }
-
+Future<void> selectSource()async{
+ImageSource? imageSource = 
+await showDialog(
+  context: context, 
+builder:(context) {
+  return SimpleDialog(
+    title: Text("Select Image Source"),
+    children: <Widget>[
+      SimpleDialogOption(
+        child: Text("Camera"),
+        onPressed: () {
+          Navigator.pop(context, ImageSource.camera);
+        }
+        ),
+        SimpleDialogOption(
+          child: Text("Gallery"),
+          onPressed: () {
+            Navigator.pop(context, ImageSource.gallery);
+            }
+            ),
+            ],
+            );
+},);
+if (imageSource != null) {
+sendImage(imageSource);
+}
+}
   Future<void> sendVideo() async {
     final picker = ImagePicker();
     final pickedVideo = await picker.pickVideo(source: ImageSource.gallery);
@@ -359,79 +388,95 @@ void viewImage(BuildContext context, String url) {
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
-    return Scaffold(
-     // backgroundColor: Colors.indigo,
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            FutureBuilder<String>(
-                future: _getProfileImageUrl(widget.reciverUserID),
-                builder: (context, snapshot) {
-            if (snapshot.hasData&&!kIsWeb) {
-               String profileImageUrl = snapshot.data!;
-            return GestureDetector(
+    return PageView(
+      controller: pageController,
+      physics:NeverScrollableScrollPhysics(),
+      children: [
+       // SearchMessage(),
+        Scaffold(
+         // backgroundColor: Colors.indigo,
+          appBar: AppBar(
+            titleSpacing: 0.0,
+            title: GestureDetector(
               onTap: () {
-                viewImage(context, profileImageUrl);
-                debugPrint("ViewProfile");
+                debugPrint("Show Profile");
+                pageController.nextPage(duration: Duration(milliseconds: 400), curve: Curves.linearToEaseOut);
               },
-              child: CircleAvatar(
-                backgroundImage: CachedNetworkImageProvider(profileImageUrl),
-              ),
-            );
-            }else{return CircleAvatar(
-                backgroundImage: CachedNetworkImageProvider(
-                    "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
-              );
-           }
-                },
-              ),
-             
-            SizedBox(width: 4,),
-            Text(widget.reciverUserName, style:const TextStyle(color: Colors.white),),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.secondary),
-      body: Container(
-        decoration: settingsService.wallpaperPath!="none"? BoxDecoration(
-          image: DecorationImage(fit: BoxFit.cover, image:AssetImage(settingsService.wallpaperPath))
-        ):const BoxDecoration(),
-        child: Column(
-          children: [
-            Expanded(
-              child: _buildMessageList()
-              ),
-              if (replyingToMessage != null)
-            Container(
-              padding: EdgeInsets.all(10),
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              onDoubleTap: () {
+                debugPrint("Show Profile");
+                pageController.nextPage(duration: Duration(milliseconds: 400), curve: Curves.linearToEaseOut);
+              },
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: Text("Replying to: $replyingToMessage", overflow: TextOverflow.ellipsis,)),
-                  Spacer(),
-                  IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        replyingToMessage = null;
-                        replyToId=null;
-                      });
-                    },
-                  )
+                  FutureBuilder<String>(
+                      future: _getProfileImageUrl(widget.reciverUserID),
+                      builder: (context, snapshot) {
+                  if (snapshot.hasData&&!kIsWeb) {
+                     String profileImageUrl = snapshot.data!;
+                  return CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(profileImageUrl),
+                  );
+                  }else{return CircleAvatar(
+                      backgroundImage: CachedNetworkImageProvider(
+                          "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
+                    );
+                 }
+                      },
+                    ),
+                   
+                  SizedBox(width: 4,),
+                  Text(widget.reciverUserName, style:const TextStyle(color: Colors.white),),
                 ],
               ),
             ),
-            if (_uploadProgress > 0)
-              Text("Upload Progress: ${_uploadProgress.toStringAsFixed(2)}%", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 28),),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
-                child: _buildMessageInputNew(),
-              )
-          ],
+            // actions: [
+            //   IconButton(onPressed: ()=>pageController.previousPage(duration: Duration(milliseconds: 400), curve: Curves.linearToEaseOut), icon: Icon(Icons.search_rounded))
+            // ],
+           backgroundColor: Theme.of(context).colorScheme.onBackground
+           ),
+          body: Container(
+            decoration: settingsService.wallpaperPath!="none"? BoxDecoration(
+              image: DecorationImage(fit: BoxFit.cover, image:AssetImage(settingsService.wallpaperPath))
+            ):const BoxDecoration(),
+            child: Column(
+              children: [
+                Expanded(
+                  child: _buildMessageList()
+                  ),
+                  if (replyingToMessage != null)
+                Container(
+                  padding: EdgeInsets.all(10),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text("Replying to: $replyingToMessage", overflow: TextOverflow.ellipsis,)),
+                      Spacer(),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          setState(() {
+                            replyingToMessage = null;
+                            replyToId=null;
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                ),
+                if (_uploadProgress > 0)
+                  Text("Upload Progress: ${_uploadProgress.toStringAsFixed(2)}%", style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 28),),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
+                    child: _buildMessageInputNew(),
+                  )
+              ],
+            ),
+          ),
         ),
-      ),
+        ProfileView(profileId: widget.reciverUserID, name: widget.reciverUserName, email: widget.reciverUserEmail, about: widget.about, goBack: () { pageController.previousPage(duration: Duration(milliseconds: 400), curve: Curves.linearToEaseOut);},)
+      ],
     );
   }
   Widget _buildMessageList(){
@@ -440,7 +485,8 @@ void viewImage(BuildContext context, String url) {
       key: PageStorageKey("_buildMessageList"),
       stream: chatService.getMessages(widget.reciverUserID, firebaseAuth.currentUser!.uid),
       builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
+     try {
+       switch (snapshot.connectionState) {
                         //if data is loading
                         case ConnectionState.waiting:
                         case ConnectionState.none:
@@ -472,13 +518,45 @@ void viewImage(BuildContext context, String url) {
            ],
          );
         }
+     } catch (e) {
+      debugPrint(e.toString());
+       return Text("Databse is in hight demand try to log in tomorrow");
+     }
+        
       
     },);
+  }
+  void markAllMessagesAsRead(String chatId) {
+    FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .where('receiverId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+        .where('isRead', isEqualTo: false)
+        .get()
+        .then((snapshot) {
+      for (var doc in snapshot.docs) {
+        doc.reference.update({'isRead': true});
+      }
+    });
   }
    Widget _buildMessageListItem(DocumentSnapshot documentSnapshot, List timestamps, {int? index}){
  Map<String,dynamic> data = documentSnapshot.data() as Map<String,dynamic>;
 var aligment = (data['senderId']==firebaseAuth.currentUser!.uid)?Alignment.centerRight:Alignment.centerLeft;
+if (aligment == Alignment.centerLeft  &&data['isRead']!=null && !data['isRead']) {
+  List <String> ids =[widget.reciverUserID, firebaseAuth.currentUser!.uid];
+    ids.sort();
+    String chatRoomId = ids.join("_");
+      // Update Firestore document to mark the message as read
+      FirebaseFirestore.instance
+          .collection('chat_rooms').doc(chatRoomId).collection("messages")
+          .doc(documentSnapshot.id)
+          .update({'isRead': true});
+    }
 final Timestamp time = data['timestamp'];
+String message = data['message']??"";
+MessageType? messageType =data['messageType']!=null?defineType(data['messageType']):null;
+String? replyTo=data['replyTo'];
 return Column(
   key: ValueKey(documentSnapshot.id),
   children: [
@@ -495,20 +573,27 @@ return Column(
 Container(
   alignment: aligment,
   child: Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    padding: const EdgeInsets.symmetric(vertical: 3.0),
     child: Column(
       crossAxisAlignment: (aligment!=Alignment.centerRight)? CrossAxisAlignment.start:CrossAxisAlignment.end,
       children: [
-      if(kDebugMode) Text("${ValueKey(documentSnapshot.id).value} ${index??''}"),
+  //    if(kDebugMode) Text("${ValueKey(documentSnapshot.id).value} ${index??''}"),
       GestureDetector(
                     onHorizontalDragEnd: (details) {
                       if (details.primaryVelocity! > 0) {
                         // Detected a right swipe
                         setState(() {
-                          replyingToMessage = data['message'];
+                          replyingToMessage = message;
                           replyToId=documentSnapshot.id;
                         });
                       }
+                    },
+                    onHorizontalDragStart: (details) {
+                        // Detected a left swipe
+                        setState(() {
+                          replyingToMessage = message;
+                          replyToId=documentSnapshot.id;
+                        });
                     },
         child: 
         Container(
@@ -521,19 +606,19 @@ Container(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment:aligment==Alignment.centerRight? CrossAxisAlignment.end:CrossAxisAlignment.start,
             children: [
-              if(data['replyTo']!=null) 
-                data['replyTo']!.contains("%!image!_")||data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/images")?
+              if(replyTo!=null) 
+                replyTo.contains("%!image!_")||replyTo.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/images")?
                 GestureDetector(
                   onDoubleTap: (){
                     data['replyToId']==null?
-                    viewImage(context,data['replyTo']!.contains("%!image!_")?data['replyTo']!.substring(9):data['replyTo']!)
+                    viewImage(context,replyTo.contains("%!image!_")?replyTo.substring(9):replyTo)
                     : WidgetsBinding.instance.addPostFrameCallback((_) {
                 scrollToItem(data['replyToId']);
               }); 
                   },
                   onTap: (){
                     data['replyToId']==null?
-                    viewImage(context,data['replyTo']!.contains("%!image!_")?data['replyTo']!.substring(9):data['replyTo']!)
+                    viewImage(context,replyTo.contains("%!image!_")?replyTo.substring(9):replyTo)
                     :WidgetsBinding.instance.addPostFrameCallback((_) {
                 scrollToItem(data['replyToId']);
               }); 
@@ -541,20 +626,17 @@ Container(
                   child: Icon(Icons.image, size: IconTheme.of(context).size!*0.7,),
                 ) 
                 :
-                data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/audio")?
+                replyTo.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/audio")?
                 Text(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""}audio")
                 :
-               data['replyTo']!.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/videos")?
+               replyTo.contains("https://firebasestorage.googleapis.com/v0/b/chatsphere-bbc53.appspot.com/o/videos")?
                Text(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""}video")
-                :
-                data['messageType']==MessageType.audio?
-                Text(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""}audio")
                 :
                 GestureDetector(
                  onDoubleTap: () {
                   //data['replyToId']==null?
                     InAppNotification.show(
-                  child: NotificationBody(child: Text("${data['replyTo']!}", maxLines: 5,),),
+                  child: NotificationBody(child: Text(replyTo, maxLines: 5,),),
                 context: context,
                 onTap: () => (){},
                   )
@@ -566,7 +648,7 @@ Container(
                  onTap:(){
                  //  data['replyToId']==null?
                     InAppNotification.show(
-                  child: NotificationBody(child: Text("${data['replyTo']!}", maxLines: 5,),),
+                  child: NotificationBody(child: Text(replyTo, maxLines: 5,),),
                 context: context,
                 onTap: () => (){},
                   )
@@ -575,39 +657,40 @@ Container(
               // })
               ; 
                  } ,
-                  child: Text(_truncateText(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""} ${data['replyTo']!}", 30), style: TextStyle(fontSize: 15,))
+                  child: Text(_truncateText(" ${data['replySenderId']!=null?(data['replySenderId']!=FirebaseAuth.instance.currentUser!.uid? "${widget.reciverUserName}\n":"You\n"):""} $replyTo", 30), style: TextStyle(fontSize: 15,))
                 ),
-                 data['messageType']!=null?
+                 messageType!=null?
                  MessageBox(
+                  isRead: data['isRead'],
           replyToId: data['replyToId'],
-          messageType: defineType(data['messageType']),
-          replyTo: data['replyTo'],
+          messageType: messageType,
+          replyTo: replyTo,
           timestamp: time.toDate().toString().substring(11, 16), 
           aligment: aligment,
           child:
-          defineType(data['messageType'])==MessageType.audio?
+          messageType==MessageType.audio?
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ChatAudioPlayer(source:AudioSource.uri(Uri.parse(data['message'])),),
-            if(aligment==Alignment.centerRight)  IconButton(onPressed: (){deleteAudio(data['message']);
+              ChatAudioPlayer(source:AudioSource.uri(Uri.parse(message)),),
+            if(aligment==Alignment.centerRight)  IconButton(onPressed: (){deleteAudio(message);
               removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
             ],
           )
           :
-          defineType(data['messageType'])==MessageType.file?
+          messageType==MessageType.file?
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-             if(aligment== Alignment.centerRight) IconButton(onPressed: (){deleteFile(data['message']).whenComplete(()=>settingsService.showFloatingMessage(context, "sucessifully deleted")); removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
-              FileView(fileUrl:data['message'],fileName: data['fileName'],),
+             if(aligment== Alignment.centerRight) IconButton(onPressed: (){deleteFile(message).whenComplete(()=>settingsService.showFloatingMessage(context, "sucessifully deleted")); removeMessage(documentSnapshot.id);}, icon: Icon(Icons.delete)),
+              FileView(fileUrl:message,fileName: data['fileName'],),
             ],
           )
           :
-          defineType(data['messageType'])==MessageType.video?
-          VideoView(videoUrl: data['message'],)
+          messageType==MessageType.video?
+          VideoView(videoUrl: message,)
           :
           CupertinoContextMenu(
           actions: [
@@ -622,7 +705,7 @@ Container(
             ),
              
             onPressed: (){     
-                 Clipboard.setData(ClipboardData(text:data['message'].toString()));
+                 Clipboard.setData(ClipboardData(text:message.toString()));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Copied to clipboard'),
@@ -641,14 +724,14 @@ Container(
               ],
             ),
             onPressed: (){
-              final MessageType messageType = defineType(data['messageType']);
-              switch (messageType) {
+              final MessageType message_type = messageType;
+              switch (message_type) {
                 case MessageType.text:
                   break;
                 case MessageType.file:
                 break;
                 case MessageType.image:  
-                 deleteImage(data['message'].toString());
+                 deleteImage(message.toString());
                  break;
                 case MessageType.video:
                 break;
@@ -660,7 +743,7 @@ Container(
               Navigator.of(context, rootNavigator: true).pop(); 
             },
             ):const SizedBox(),
-           defineType(data['messageType'])==MessageType.image? CupertinoContextMenuAction(child: Row(
+           messageType==MessageType.image? CupertinoContextMenuAction(child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
              crossAxisAlignment: CrossAxisAlignment.center,
               children: const[
@@ -669,7 +752,7 @@ Container(
               ],
             ),
             onPressed: (){
-              launch(data['message']);
+              launch(message);
               debugPrint(documentSnapshot.id.toString());
               Navigator.of(context, rootNavigator: true).pop(); 
             },
@@ -694,12 +777,12 @@ Container(
             maxWidth: MediaQuery.of(context).size.width*0.7,
           ),
           child:
-          defineType(data['messageType'])==MessageType.image?
+          messageType==MessageType.image?
           InstaImageViewer(
             child: InteractiveViewer(
           child: CachedNetworkImage(
             fit: BoxFit.contain,
-               imageUrl: data['message'],
+               imageUrl: message,
                progressIndicatorBuilder: (context, url, downloadProgress) => 
                        CircularProgressIndicator(value: downloadProgress.progress),
                errorWidget: (context, url, error) => const Icon(Icons.error),
@@ -708,16 +791,17 @@ Container(
           )
           :
            Text(
-            data['message'],
+            message,
           )
                 )
                 )
           )
                  : 
           MessageBox(
+            isRead: data['isRead'],
             replyToId: data['replyToId'],
             aligment: aligment,
-            replyTo: data['replyTo'],
+            replyTo: replyTo,
             timestamp: time.toDate().toString().substring(11, 16),
             child:
           CupertinoContextMenu(
@@ -749,7 +833,7 @@ Container(
             ),
              
             onPressed: (){
-               Clipboard.setData(ClipboardData(text: data['message'].toString().contains("%!image!_")?data['message'].toString().substring(9):data['message']));
+               Clipboard.setData(ClipboardData(text: message.toString().contains("%!image!_")?message.toString().substring(9):message));
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Copied to clipboard'),
@@ -768,15 +852,15 @@ Container(
               ],
             ),
             onPressed: (){
-              if(data['message'].toString().contains("%!image!_")){
-                deleteImage(data['message'].toString().substring(9));
+              if(message.toString().contains("%!image!_")){
+                deleteImage(message.toString().substring(9));
               }
               removeMessage(documentSnapshot.id);
               debugPrint(documentSnapshot.id.toString());
               Navigator.of(context, rootNavigator: true).pop(); 
             },
             ):const SizedBox(),
-           data['message'].toString().contains("%!image!_")? CupertinoContextMenuAction(child: Row(
+           message.toString().contains("%!image!_")? CupertinoContextMenuAction(child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
              crossAxisAlignment: CrossAxisAlignment.center,
               children: const[
@@ -785,7 +869,7 @@ Container(
               ],
             ),
             onPressed: (){
-              launch(data['message'].toString().substring(9));
+              launch(message.toString().substring(9));
               debugPrint(documentSnapshot.id.toString());
               Navigator.of(context, rootNavigator: true).pop(); 
             },
@@ -796,12 +880,12 @@ Container(
             maxWidth: MediaQuery.of(context).size.width*0.7,
           ),
           child:
-          data['message'].toString().contains("%!image!_")?
+          message.toString().contains("%!image!_")?
           InstaImageViewer(
             child: InteractiveViewer(
           child: CachedNetworkImage(
             fit: BoxFit.contain,
-               imageUrl: data['message'].toString().substring(9),
+               imageUrl: message.toString().substring(9),
                progressIndicatorBuilder: (context, url, downloadProgress) => 
                        CircularProgressIndicator(value: downloadProgress.progress),
                errorWidget: (context, url, error) => const Icon(Icons.error),
@@ -810,7 +894,7 @@ Container(
           )
           :
            Text(
-            data['message'],
+            message,
           ),
                 )
                 ),),],
@@ -883,7 +967,7 @@ Container(
             child: Icon(Icons.add_photo_alternate, color: Theme.of(context).primaryColor),
             label: "Send an Image",
             onTap: () {
-              sendImage();
+              selectSource();
               debugPrint("Image linking");
             },
           ),
@@ -975,7 +1059,7 @@ Container(
             child: Icon(Icons.add_photo_alternate, color: Theme.of(context).primaryColor),
             label: "Send an Image",
             onTap: () {
-              sendImage();
+              selectSource();
               debugPrint("Image linking");
             },
           ),

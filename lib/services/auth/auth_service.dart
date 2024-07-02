@@ -14,14 +14,14 @@ class AuthService extends ChangeNotifier {
       UserCredential userCredential = await firebaseAuth
           .signInWithEmailAndPassword(email: email, password: password);
       final fMCToken = await _firebaseMessaging.getToken();
-      await firebaseFirestore
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .set({
-        "email": email,
-        "uid": userCredential.user!.uid,
-        "lastVisited": Timestamp.now(),
-      });
+      // await firebaseFirestore
+      //     .collection("users")
+      //     .doc(userCredential.user!.uid)
+      //     .set({
+      //   "email": email,
+      //   "uid": userCredential.user!.uid,
+      //   "lastVisited": Timestamp.now(),
+      // });
       try {
         await firebaseFirestore
             .collection("users_tokens")

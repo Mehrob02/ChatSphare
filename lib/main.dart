@@ -2,8 +2,8 @@
 //https://pub.dev/packages/flutter_list_view
 
 import 'package:chatsphere/mytests/limit_connection.dart';
-import 'package:chatsphere/mytests/testfile.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_notification/in_app_notification.dart';
@@ -35,6 +35,7 @@ List<MaterialColor> appColors = [
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
   await FlutterApi().initNotifications();
   final settingsService = SettingsService();
   await settingsService.init();

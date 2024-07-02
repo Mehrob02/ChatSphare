@@ -57,8 +57,14 @@ List<dynamic> myContacts=[];
    Timer.periodic(const Duration(seconds: 60), (timer) {
     setLastTimeEntered();
   });
+  initUserData();
   loadContacts();
     super.initState();
+  }
+  void initUserData() async{
+    final settingsService = Provider.of<SettingsService>(context, listen: false);
+    settingsService.nickname=await getNickNames(FirebaseAuth.instance.currentUser!.uid);
+    settingsService.email=FirebaseAuth.instance.currentUser!.email!;
   }
 void viewImage(BuildContext context, String url) {
   Navigator.push(
@@ -227,9 +233,7 @@ Future<void> addRequest(String newContactId) async {
 
   Future<void> setLastTimeEntered()async{
     try {
-      await firebaseFirestore.collection("users").doc(auth.currentUser!.uid).set({
-      "email" :auth.currentUser!.email,
-      "uid": auth.currentUser!.uid,
+      await firebaseFirestore.collection("users").doc(auth.currentUser!.uid).update({
       "lastVisited":Timestamp.now(),
     });
     } catch (e) {
@@ -237,8 +241,8 @@ Future<void> addRequest(String newContactId) async {
     }
 
   }
-Future<String> getNickNames(DocumentSnapshot documentSnapshot)async{
-DocumentSnapshot nickNameSnapshot =await firebaseFirestore.collection("nickNames").doc(documentSnapshot.id).get();
+Future<String> getNickNames(String id)async{
+DocumentSnapshot nickNameSnapshot =await firebaseFirestore.collection("nickNames").doc(id).get();
 Map<String, dynamic> nickNamesData = nickNameSnapshot.data() as Map<String, dynamic>;
 String nickName = nickNamesData['nickName'];
 return nickName;
@@ -263,6 +267,7 @@ Future refresh()async{
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
+
     return SafeArea(
       child: Scaffold(
         body: Column(
@@ -366,7 +371,7 @@ Future refresh()async{
           ),
           child: ListTile(
             onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder:(context) => FriendRequestPage(friendRequestList: requests),));
+              Navigator.push(context, MaterialPageRoute(builder:(context) => FriendRequestPage(friendRequestList: requests, onAccept:loadContacts),));
             },
             title: Text("You've got a chat requiest",style: TextStyle(color: Colors.white),), 
           trailing: Text("${requests.length}",style: TextStyle(color: Colors.white)))),
@@ -379,62 +384,95 @@ Future refresh()async{
     ); 
   }
   Widget _buildUserList(){
-  return StreamBuilder<QuerySnapshot>(
-    stream: FirebaseFirestore.instance.collection('users').snapshots(),
-    builder:(context, snapshot){
-    if(snapshot.hasError){
-      debugPrint(snapshot.error.toString());
-      return const Text("🤕 error");
-    }if(snapshot.connectionState==ConnectionState.waiting){
+  return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).collection("${FirebaseAuth.instance.currentUser!.uid}_contacts").snapshots(),
+builder: (context, contactsnapshot) { 
+  if(contactsnapshot.hasData){
+   List<String> contacts = [];
+          for (var doc in contactsnapshot.data!.docs) {
+            var data = doc.data();
+            if (data.containsKey('contacts')) {
+              contacts.addAll(List<String>.from(data['contacts']));
+            }
+          }
+          debugPrint("Requests: $contacts");
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').snapshots(),
+      builder:(context, snapshot){
+      if(snapshot.hasError){
+        debugPrint(snapshot.error.toString());
+        return const Text("🤕 error");
+      }if(snapshot.connectionState==ConnectionState.waiting){
+        return const Text("loading");
+      }
+      else{
+       // List<QueryDocumentSnapshot> users = contactsnapshot.data!.docs;
+        return RefreshIndicator(
+          onRefresh: ()=>refresh(),
+          child: ListView(
+            children: snapshot.data!.docs.map<Widget>((doc) => _buildUserListItem(doc,contacts)).toList()
+          ),
+        );
+      }
+    },);}
+    else{
       return const Text("loading");
     }
-    else{
-      List<QueryDocumentSnapshot> users = snapshot.data!.docs;
-      return RefreshIndicator(
-        onRefresh: ()=>refresh(),
-        child: ListView(
-          children: snapshot.data!.docs.map<Widget>((doc) => _buildUserListItem(doc)).toList()
-        ),
-      );
     }
-  },);
+    
+  );
   }
-  Widget _buildLastMessage(String reciverUserID){
+   Widget _buildLastMessage(String receiverUserID) {
+    // Ограничиваем запрос последним сообщением
+    List<String> ids = [FirebaseAuth.instance.currentUser!.uid, receiverUserID];
+  ids.sort();
+  String chatRoomId = ids.join("_");
     return StreamBuilder<QuerySnapshot>(
-      stream: chatService.getMessages(reciverUserID, FirebaseAuth.instance.currentUser!.uid),
+      stream: FirebaseFirestore.instance
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .snapshots(),
       builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
-                        //if data is loading
-                        case ConnectionState.waiting:
-                        case ConnectionState.none:
-                          return const SizedBox();
-
-                        //if some or all data is loaded then show it
-                        case ConnectionState.active:
-                        case ConnectionState.done:
-        return _buildLastMessageItem(snapshot.data!.docs.reversed.toList().first);
+        if (snapshot.connectionState == ConnectionState.waiting || snapshot.connectionState == ConnectionState.none) {
+          return const SizedBox();
+        } else if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          return _buildLastMessageItem(snapshot.data!.docs.first);
+        } else {
+          return const Text('No messages yet');
         }
-      
-    },);
+      },
+    );
   }
   Widget _buildLastMessageItem(DocumentSnapshot documentSnapshot,){
  Map<String,dynamic> data = documentSnapshot.data() as Map<String,dynamic>;
  String sender = (data['senderId']==FirebaseAuth.instance.currentUser!.uid?"You: ":"");
  switch (data['messageType']) {
    case "text":
-   return Text(sender+(data["message"]??""), style: TextStyle(fontWeight: FontWeight.bold),);
+   return Row(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.center,
+     children: [
+            if(data['senderId']!=FirebaseAuth.instance.currentUser!.uid&&data['isRead']!=null&&!data['isRead']) Icon(Icons.circle, size: IconTheme.of(context).size!*0.5, color: Theme.of(context).primaryColor,),
+           SizedBox(width: 4,), 
+       Expanded(child: Text(sender+(data["message"]??""), style: TextStyle(fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis,),maxLines: 1, overflow: TextOverflow.ellipsis,)),
+       
+     ],
+   );
    default:
-   return Text(sender+(data['messageType']??(data["message"]??"")), style: TextStyle(fontWeight: FontWeight.bold));
+   return Text(sender+(data['messageType']??(data["message"]??"")), style: TextStyle(fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis),maxLines: 1,);
  }
  
  }
- Widget _buildUserListItem(DocumentSnapshot documentSnapshot){
+ Widget _buildUserListItem(DocumentSnapshot documentSnapshot, List contacts){
     Map<String,dynamic> data = documentSnapshot.data()! as Map<String,dynamic>;
     Timestamp? lastVisited = data['lastVisited'];
     return FutureBuilder<String>(
-       future: getNickNames(documentSnapshot),
+       future: getNickNames(documentSnapshot.id),
   builder: (context, snapshot) {
-    if(auth.currentUser!.email!=data['email']&&myContacts.contains(documentSnapshot.id)){
+    if(auth.currentUser!.email!=data['email']&&contacts.contains(documentSnapshot.id)){
    //   addContact(documentSnapshot.id);
       return Padding(
         padding: const EdgeInsets.all(6.0),
@@ -484,7 +522,12 @@ Future refresh()async{
               :"${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
               ),
           onTap: (){
-            Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciverUserEmail: data['email'],reciverUserName: snapshot.data!,),));
+if(snapshot.data==null){
+refresh();
+}else{
+              Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciverUserEmail: data['email'],reciverUserName: snapshot.data!, about: data['about'],),));
+
+}
           },
         ),
       );

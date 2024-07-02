@@ -23,9 +23,9 @@ class AccountViewPage extends StatefulWidget {
 }
 
 class _AccountViewPageState extends State<AccountViewPage> {
-  void loadProfileImage() async {
+  void loadProfileImage(ImageSource imageSource) async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+    final pickedImage = await picker.pickImage(source: imageSource);
 
     if (pickedImage != null) {
       File imageFile = File(pickedImage.path);
@@ -37,6 +37,33 @@ class _AccountViewPageState extends State<AccountViewPage> {
       setState(() {});
     }
   }
+  Future<void> selectSource()async{
+ImageSource? imageSource = 
+await showDialog(
+  context: context, 
+builder:(context) {
+  return SimpleDialog(
+    title: Text("Select Image Source"),
+    children: <Widget>[
+      SimpleDialogOption(
+        child: Text("Camera"),
+        onPressed: () {
+          Navigator.pop(context, ImageSource.camera);
+        }
+        ),
+        SimpleDialogOption(
+          child: Text("Gallery"),
+          onPressed: () {
+            Navigator.pop(context, ImageSource.gallery);
+            }
+            ),
+            ],
+            );
+},);
+if (imageSource != null) {
+loadProfileImage(imageSource);
+}
+}
  void editName() async {
   String newName = ''; // Инициализация пустой строкой
   String? result = await showDialog<String>(
@@ -176,7 +203,7 @@ authService.signOut();
                     child: GestureDetector(
                       onTap: () {
                         if (!kIsWeb) {
-                          loadProfileImage();
+                          selectSource();
                         }
                       },
                       child: Icon(

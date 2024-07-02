@@ -1,4 +1,4 @@
-// ignore_for_file: non_constant_identifier_names, unused_import, unused_field, prefer_const_declarations
+// ignore_for_file: non_constant_identifier_names, unused_import, unused_field, prefer_const_declarations, prefer_const_constructors
 
 import 'dart:convert';
 
@@ -110,4 +110,21 @@ class ChatService extends ChangeNotifier{
     String ChatRoomId = ids.join("_");
     return firebaseFirestore.collection("chat_rooms").doc(ChatRoomId).collection("messages").orderBy("timestamp", descending: false).snapshots();
   }
+  Stream<QuerySnapshot> searchMessagesByDate(String userId, String otherUserId, Timestamp day) {
+  List<String> ids = [userId, otherUserId];
+  ids.sort();
+  String chatRoomId = ids.join("_");
+
+  // Создаем Timestamp для следующего дня
+  Timestamp nextDay = Timestamp.fromDate(day.toDate().add(Duration(days: 1)));
+
+  return firebaseFirestore
+      .collection("chat_rooms")
+      .doc(chatRoomId)
+      .collection("messages")
+      .where('timestamp', isGreaterThanOrEqualTo: day, isLessThan: nextDay)
+      .orderBy("timestamp", descending: false)
+      .snapshots();
+}
+
 }

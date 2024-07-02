@@ -1,7 +1,6 @@
 // ignore_for_file: unnecessary_getters_setters
 
 import 'package:chatsphere/widgets/notification_body.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -18,13 +17,9 @@ class SettingsService extends ChangeNotifier {
   String _wallpaperPath = "none";
   String get wallpaperPath => _wallpaperPath;
 
-  String _email;
+  String _email='';
   String _userNickName = '';
   MaterialColor _appColor = Colors.deepPurple;
-
-  SettingsService() : _email = FirebaseAuth.instance.currentUser?.email ?? '' {
-    loadUserNickName();
-  }
 
   String get email => _email;
   String get userNickName => _userNickName;
@@ -110,20 +105,19 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadUserNickName() async {
-    if (firebaseAuth.currentUser != null) {
-      DocumentSnapshot nickNameSnapshot = await FirebaseFirestore.instance
-          .collection("nickNames")
-          .doc(firebaseAuth.currentUser!.uid)
-          .get();
-      if (nickNameSnapshot.exists) {
-        Map<String, dynamic> nickNamesData =
-            nickNameSnapshot.data() as Map<String, dynamic>;
-        _userNickName = nickNamesData['nickName'] ?? '';
-        notifyListeners();
-      }
-    }
-  }
+  // Future<void> loadUserNickName(String id) async {
+  //   if (firebaseAuth.currentUser != null) {
+  //     DocumentSnapshot nickNameSnapshot = await FirebaseFirestore.instance
+  //         .collection("nickNames")
+  //         .doc(id)
+  //         .get();
+  //     if (nickNameSnapshot.exists) {
+  //       Map<String, dynamic> nickNamesData =
+  //           nickNameSnapshot.data() as Map<String, dynamic>;
+  //       _userNickName = nickNamesData['nickName'] ?? '';
+  //     }
+  //   }
+  // }
 
   void showFloatingMessage(BuildContext context, String message,
       {int? maxlines, VoidCallback? onTap}) {
@@ -135,14 +129,13 @@ class SettingsService extends ChangeNotifier {
         ),
       ),
       context: context,
-      onTap: onTap,
+      onTap: onTap??(){},
     );
   }
 
   Future<void> init() async {
     await loadColor();
     await loadWallpaperPath();
-    await loadUserNickName();
   }
 
   MaterialColor createMaterialColor(Color color) {

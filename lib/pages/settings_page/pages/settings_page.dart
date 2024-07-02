@@ -69,6 +69,7 @@ void showAbout(){
                             },
                             child: Icon(Icons.arrow_back_ios),
                           ),
+                          Text("Settings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           GestureDetector(
                             child: const Text("Done", style: TextStyle(fontWeight: FontWeight.bold),),
                           )
@@ -116,26 +117,16 @@ void showAbout(){
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(25),
-                      topRight: Radius.circular(25),
+                      topLeft: Radius.circular(50),
+                      topRight: Radius.circular(50),
                     ),
                     color: Theme.of(context).colorScheme.onBackground,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            "Settings",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                            ),
-                          ),
-                        ),
                         Expanded(
                           child: SingleChildScrollView(
                             child: Column(

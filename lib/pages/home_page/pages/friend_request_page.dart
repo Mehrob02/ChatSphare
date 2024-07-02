@@ -8,8 +8,9 @@ import 'package:flutter/material.dart';
 import '../../../services/chat/chat_service.dart';
 
 class FriendRequestPage extends StatefulWidget {
-  const FriendRequestPage({super.key, required this.friendRequestList});
+  const FriendRequestPage({super.key, required this.friendRequestList, required this.onAccept});
   final List friendRequestList;
+  final VoidCallback onAccept;
   @override
   State<FriendRequestPage> createState() => _FriendRequestPageState();
 }
@@ -306,6 +307,7 @@ class _FriendRequestPageState extends State<FriendRequestPage> {
                                     acceptTheRequest(
                                         widget.friendRequestList[index]);
                                   });
+                                  widget.onAccept;
                                 },
                                 icon: const Icon(Icons.check)),
                             IconButton(

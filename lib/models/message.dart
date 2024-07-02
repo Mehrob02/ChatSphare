@@ -23,6 +23,7 @@ class Message{
     'receiverId':receiverId,
     'message':message,
     'timestamp':timestamp,
+    'isRead':false,
     'messageType':messageType.name,
     'fileName':fileName??'undefined',
     if(replyTo!=null)'replyTo':replyTo,
@@ -35,6 +36,7 @@ class Message{
     'receiverId':receiverId,
     'message':message,
     'timestamp':timestamp,
+    'isRead':false,
     'messageType':messageType.name,
     if(replyTo!=null)'replyTo':replyTo,
     if(replyToId!=null)'replyToId':replyToId
