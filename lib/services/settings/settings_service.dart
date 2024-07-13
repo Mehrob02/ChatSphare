@@ -17,12 +17,8 @@ class SettingsService extends ChangeNotifier {
   String _wallpaperPath = "none";
   String get wallpaperPath => _wallpaperPath;
 
-  String _email='';
-  String _userNickName = '';
   MaterialColor _appColor = Colors.deepPurple;
 
-  String get email => _email;
-  String get userNickName => _userNickName;
 
   MaterialColor get appColor => _appColor;
 
@@ -55,14 +51,6 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  set email(String newUserEmail) {
-    _email = newUserEmail;
-  }
-
-  set nickname(String value) {
-    _userNickName = value;
-    notifyListeners();
-  }
 
   void changeAppColor(MaterialColor newAppColor) {
     appColor = newAppColor;

@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, unused_import
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, unused_import, unused_local_variable
 
 import 'dart:io';
 
@@ -23,18 +23,30 @@ class AccountViewPage extends StatefulWidget {
 }
 
 class _AccountViewPageState extends State<AccountViewPage> {
+  final TextEditingController nameController=TextEditingController();
+  final TextEditingController emailController=TextEditingController();
+  bool isNameChanged=false;
+  bool isEmailChanged=false;
   void loadProfileImage(ImageSource imageSource) async {
     final picker = ImagePicker();
     final pickedImage = await picker.pickImage(source: imageSource);
-
     if (pickedImage != null) {
       File imageFile = File(pickedImage.path);
-
       final storageReference = FirebaseStorage.instance.ref().child(
           'user_profile_images/${FirebaseAuth.instance.currentUser!.uid}.jpg');
       UploadTask uploadTask = storageReference.putFile(imageFile);
       await uploadTask.whenComplete(() => setState(() {}));
       setState(() {});
+    }
+  }
+  Future<String> _getProfileImageUrl(String id) async {
+    try {
+      final ref = FirebaseStorage.instance.ref('user_profile_images/$id.jpg');
+      String url = await ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      // Если изображение не найдено или произошла ошибка, возвращаем URL изображения по умолчанию
+      return "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png";
     }
   }
   Future<void> selectSource()async{
@@ -167,77 +179,108 @@ authService.signOut();
         ),
         centerTitle: true,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            SizedBox(
-              height: 20,
-            ),
-            Stack(
-              children: [
-                Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: FutureBuilder<String>(
-                      future: settingsService.getProfileImageUrl(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return CircleAvatar(
-                            radius: 75,
-                            backgroundImage: CachedNetworkImageProvider(
-                              "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png",
-                              errorListener: (p1) {},
-                            ),
-                          );
-                        }
-                        String profileImageUrl = snapshot.data!;
+            SizedBox(height: 20,),
+            Center(
+              child: Stack(
+                children: [
+                  Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: FutureBuilder<String>(
+                            future: _getProfileImageUrl(FirebaseAuth.instance.currentUser!.uid),
+                            builder: (context, snapshot) {
+                        if (snapshot.hasData&&!kIsWeb) {
+                           String profileImageUrl = snapshot.data!;
                         return CircleAvatar(
-                          radius: 75,
-                          backgroundImage:
-                              CachedNetworkImageProvider(profileImageUrl),
+                          radius: 50,
+                          backgroundImage: CachedNetworkImageProvider(profileImageUrl),
                         );
-                      },
-                    )),
-                Positioned(
-                    right: 0,
-                    top: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        if (!kIsWeb) {
-                          selectSource();
-                        }
-                      },
-                      child: Icon(
-                        Icons.edit,
-                        color: Theme.of(context).primaryColor,
+                        }else{return CircleAvatar(
+                          radius: 50,
+                            backgroundImage: CachedNetworkImageProvider(
+                                "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
+                          );
+                       }
+                            },
+                          ),
                       ),
-                    ))
-              ],
+                  Positioned(
+                      right: 0,
+                      top: 0,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (!kIsWeb) {
+                            selectSource();
+                          }
+                        },
+                        child: Icon(
+                          Icons.edit,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ))
+                ],
+              ),
             ),
-            SizedBox(
-              height: 20,
+            SizedBox(height: 20,),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("userName"),
+               if(isNameChanged)   ElevatedButton(onPressed: (){}, child: Text("Change"),)
+                ],
+              ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(settingsService.userNickName),
-                IconButton(onPressed: (){setState(() {editName();});}, icon: Icon(Icons.edit))
-              ],
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                hintText: "Name",
+                border: OutlineInputBorder()
+              ),
+              onChanged: (value) {
+                 setState(() {
+                  if(nameController.text.isNotEmpty) {
+                    isNameChanged = true;
+                  }else{
+                    isNameChanged = false;
+                  }
+                 });
+              },
             ),
-            SizedBox(
-              height: 5,
+            SizedBox(height: 5,),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("email"),
+               if(isEmailChanged)   ElevatedButton(onPressed: (){}, child: Text("Change"),)
+                ],
+              ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(settingsService.email),
-                IconButton(onPressed: (){setState(() {editEmail();});}, icon: Icon(Icons.edit))
-              ],
+            TextField(
+              controller: emailController,
+               onChanged: (value) {
+                 setState(() {
+                  if(emailController.text.isNotEmpty) {
+                    isEmailChanged = true;
+                  }else{
+                    isEmailChanged = false;
+                  }
+                 });
+              },
+              decoration: InputDecoration(
+                hintText: "Email",
+                border: OutlineInputBorder()
+              ),
             ),
-            SizedBox(
-              height: 10,
-            ),
+            SizedBox(height: 10,),
             Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,

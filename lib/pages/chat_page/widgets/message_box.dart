@@ -31,7 +31,7 @@ class _MessageBoxState extends State<MessageBox> {
           decoration: BoxDecoration(
             color:widget.aligment==Alignment.centerRight? Theme.of(context).primaryColor.withOpacity(0.55):Theme.of(context).colorScheme.onSecondary,
             borderRadius:widget.aligment==Alignment.centerRight? BorderRadius.only(bottomLeft: Radius.circular(10), topLeft: Radius.circular(10), bottomRight: Radius.circular(13)):BorderRadius.only( topRight: Radius.circular(10), bottomLeft: Radius.circular(13), bottomRight: Radius.circular(10),),
-
+    
           ),
           
           child: Padding(

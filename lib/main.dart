@@ -1,12 +1,12 @@
 // ignore_for_file: prefer_const_constructors, unused_import, deprecated_member_use
 //https://pub.dev/packages/flutter_list_view
 
-import 'package:chatsphere/mytests/limit_connection.dart';
 import 'package:chatsphere/theme_provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_notification/in_app_notification.dart';
+import 'package:pie_menu/pie_menu.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'services/internet_provider/internet_provider.dart';
@@ -117,71 +117,73 @@ class MyApp extends StatelessWidget {
     return InAppNotification(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Stack(
-            children: [
-              MaterialApp(
-                debugShowCheckedModeBanner: false,
-                home: Stack(
-                  children: [
+        home: PieCanvas(
+          child: Stack(
+              children: [
+                MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  home: Stack(
+                    children: [
+                      MaterialApp(
+                        debugShowCheckedModeBanner: false,
+                        theme: themeProvider.isDark? darkTheme:lightTheme,
+                       home: AuthGate()),
+                        Visibility(
+                  visible: !connectivityService.hasConnection,
+                  maintainAnimation: true,
+                 maintainState: true,
+                  child: AnimatedOpacity(
+                    duration: const Duration(seconds: 1),
+            curve: Curves.fastOutSlowIn,
+            opacity: !connectivityService.hasConnection?1:0,
+                    child:
                     MaterialApp(
-                      debugShowCheckedModeBanner: false,
-                      theme: themeProvider.isDark? darkTheme:lightTheme,
-                     home: AuthGate()),
-                      Visibility(
-                visible: !connectivityService.hasConnection,
-                maintainAnimation: true,
-       maintainState: true,
-                child: AnimatedOpacity(
-                  duration: const Duration(seconds: 1),
-          curve: Curves.fastOutSlowIn,
-          opacity: !connectivityService.hasConnection?1:0,
-                  child:
-                  MaterialApp(
-                debugShowCheckedModeBanner: false,
-                theme: themeProvider.isDark? darkTheme:lightTheme,
-                home: Scaffold(
-                    body: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(kIsWeb? "no-connection.png":"assets/no-connection.png"),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Text(
-                                "Oops....",
-                                style: TextStyle(fontSize: 30),
-                              ),
-                              Text("Looks like you've lost internet connection"),
-                              Text("Please, fix your connection to continue"),
-                            ],
-                          ),
-                        ],
+                  debugShowCheckedModeBanner: false,
+                  theme: themeProvider.isDark? darkTheme:lightTheme,
+                  home: Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(kIsWeb? "no-connection.png":"assets/no-connection.png"),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Text(
+                                  "Oops....",
+                                  style: TextStyle(fontSize: 30),
+                                ),
+                                Text("Looks like you've lost internet connection"),
+                                Text("Please, fix your connection to continue"),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
+                ),)
+                    ],
+                  ),
                 ),
-              ),)
-                  ],
-                ),
-              ),
-              if (settingsService.colorChanger)
-                FloatingMenuPanel(
-                  positionTop: 20,
-                  panelIcon: Icons.format_color_fill_rounded,
-                  onPressed: (a) {
-                    if (a == 4) {
-                      settingsService.colorChange(false);
-                    } else {
-                      settingsService.changeAppColor(appColors[a]);
-                    }
-                  },
-                  buttonColors: appColors,
-                  buttons: icons,
-                  backgroundColor: settingsService.appColor,
-                ),
-             
-          ],
+                if (settingsService.colorChanger)
+                  FloatingMenuPanel(
+                    positionTop: 20,
+                    panelIcon: Icons.format_color_fill_rounded,
+                    onPressed: (a) {
+                      if (a == 4) {
+                        settingsService.colorChange(false);
+                      } else {
+                        settingsService.changeAppColor(appColors[a]);
+                      }
+                    },
+                  //  buttonColors: appColors,
+                    buttons: icons,
+                    backgroundColor: settingsService.appColor,
+                  ),
+               
+            ],
+          ),
         )),
     );
   }

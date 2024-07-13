@@ -73,6 +73,13 @@ dependencies:
   fl_chart: ^0.68.0
   flutter_file_downloader: ^2.0.0
   audio_wave_url_package: ^1.0.34
+  video_player: ^2.9.1
+  vimeo_video_player: ^0.0.16
+  cached_video_player_plus: ^3.0.2
+  appinio_video_player: ^1.2.2
+  contextmenu: ^3.0.0
+  pie_menu: ^3.2.1
+  font_awesome_flutter: ^10.7.0
 
 dev_dependencies:
   flutter_test:

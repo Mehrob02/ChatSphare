@@ -17,7 +17,7 @@ import 'customisation_page.dart';
 import '../../../services/settings/settings_service.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key,});
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -61,13 +61,12 @@ void showAbout(){
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          GestureDetector(
-                            onTap: () {
+                          BackButton(
+                            onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Icon(Icons.arrow_back_ios),
                           ),
                           Text("Settings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                           GestureDetector(
@@ -103,8 +102,10 @@ void showAbout(){
             )
                                 ),
                          
-                            Text(settingsService.userNickName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                            Text(settingsService.email),
+                          Text('nickName', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        
+                            
+                            Text(FirebaseAuth.instance.currentUser!.email!),
                           ],
                         ),
                       ),

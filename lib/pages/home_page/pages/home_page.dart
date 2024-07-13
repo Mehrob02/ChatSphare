@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsphere/pages/home_page/pages/friend_request_page.dart';
 import 'package:chatsphere/models/message.dart';
+import 'package:chatsphere/pages/home_page/widgets/build_user_list.dart';
 import 'package:chatsphere/widgets/notification_body.dart';
 import 'package:chatsphere/services/chat/chat_service.dart';
 import 'package:chatsphere/services/settings/settings_service.dart';
@@ -17,13 +18,14 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:floating_menu_panel/floating_menu_panel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'as math;
 
-import '../../chat_page/chat_page.dart';
+import '../../chat_page/pages/chat_page.dart';
 import '../../../services/auth/auth_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -57,40 +59,10 @@ List<dynamic> myContacts=[];
    Timer.periodic(const Duration(seconds: 60), (timer) {
     setLastTimeEntered();
   });
-  initUserData();
   loadContacts();
     super.initState();
   }
-  void initUserData() async{
-    final settingsService = Provider.of<SettingsService>(context, listen: false);
-    settingsService.nickname=await getNickNames(FirebaseAuth.instance.currentUser!.uid);
-    settingsService.email=FirebaseAuth.instance.currentUser!.email!;
-  }
-void viewImage(BuildContext context, String url) {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => SafeArea(
-        child: Scaffold(
-          body: Stack(
-            children: [
-              Center(
-                child: PhotoView(
-                  imageProvider: CachedNetworkImageProvider(url),
-                ),
-              ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: IconButton(onPressed: (){Navigator.pop(context);}, icon: Icon(Icons.cancel, color: Theme.of(context).colorScheme.onSurface,)
-                ))
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
+
   Future<void> loadContacts() async {
   try {
     DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
@@ -241,33 +213,15 @@ Future<void> addRequest(String newContactId) async {
     }
 
   }
-Future<String> getNickNames(String id)async{
-DocumentSnapshot nickNameSnapshot =await firebaseFirestore.collection("nickNames").doc(id).get();
-Map<String, dynamic> nickNamesData = nickNameSnapshot.data() as Map<String, dynamic>;
-String nickName = nickNamesData['nickName'];
-return nickName;
-  }
-  Future<String> _getProfileImageUrl(String recieverId) async {
-    try {
-      final ref = FirebaseStorage.instance.ref('user_profile_images/$recieverId.jpg');
-      String url = await ref.getDownloadURL();
-      return url;
-    } catch (e) {
-      // Если изображение не найдено или произошла ошибка, возвращаем URL изображения по умолчанию
-      return "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png";
-    }
-  }
+ 
   @override
   void dispose() {
     super.dispose();
   }
-Future refresh()async{
-  setState(() {});
-}
+
   @override
   Widget build(BuildContext context) {
     final settingsService = Provider.of<SettingsService>(context);
-
     return SafeArea(
       child: Scaffold(
         body: Column(
@@ -291,7 +245,11 @@ Future refresh()async{
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(6.0),
-                      child: IconButton(onPressed: (){Navigator.push(context, MaterialPageRoute(builder:(context) => SettingsPage(),));}, icon: Icon(Icons.settings,color: Theme.of(context).primaryColor,)),
+                      child: IconButton(onPressed: (){
+                        Navigator.push(context, MaterialPageRoute(
+                          builder:(context) => 
+                          SettingsPage()));},
+                            icon: Icon(Icons.settings,color: Theme.of(context).primaryColor,)),
                     ))
                 ],
               ),
@@ -301,8 +259,22 @@ Future refresh()async{
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(FontAwesomeIcons.magnifyingGlass),
+                        hintText: "Search",
+                      ),
+                      style: TextStyle(color: Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  SizedBox(height: 10,),
                   _buildRequestWidget(),
-                  Expanded(child: _buildUserList()),
+               //   _buildLastChats(),
+                  Expanded(child: BuildUserList()),
+
                 ],
               ),
             ),
@@ -320,33 +292,10 @@ Future refresh()async{
                 }
                 ),
             ),
-        // floatingActionButton: Row(
-        //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        //   crossAxisAlignment: CrossAxisAlignment.center,
-        //   children: [
-        //     Padding(
-        //       padding: const EdgeInsets.all(8.0),
-        //       child: ElevatedButton(
-        //         child: const Text("Add Contact"),
-        //         onPressed: () {
-        //           addContactGetId();
-        //         }
-        //         ),
-        //     ),
-        //     Padding(
-        //       padding: const EdgeInsets.all(8.0),
-        //       child: ElevatedButton(
-        //         child: const Text("sign out"),
-        //         onPressed: () {
-        //           signOut();
-        //         }
-        //         ),
-        //     ),
-        //   ],
-        // )
       ),
     );
   }
+
   Widget _buildRequestWidget(){
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).collection("${FirebaseAuth.instance.currentUser!.uid}_contacts").snapshots(),
@@ -383,156 +332,6 @@ Future refresh()async{
         },
     ); 
   }
-  Widget _buildUserList(){
-  return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid).collection("${FirebaseAuth.instance.currentUser!.uid}_contacts").snapshots(),
-builder: (context, contactsnapshot) { 
-  if(contactsnapshot.hasData){
-   List<String> contacts = [];
-          for (var doc in contactsnapshot.data!.docs) {
-            var data = doc.data();
-            if (data.containsKey('contacts')) {
-              contacts.addAll(List<String>.from(data['contacts']));
-            }
-          }
-          debugPrint("Requests: $contacts");
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').snapshots(),
-      builder:(context, snapshot){
-      if(snapshot.hasError){
-        debugPrint(snapshot.error.toString());
-        return const Text("🤕 error");
-      }if(snapshot.connectionState==ConnectionState.waiting){
-        return const Text("loading");
-      }
-      else{
-       // List<QueryDocumentSnapshot> users = contactsnapshot.data!.docs;
-        return RefreshIndicator(
-          onRefresh: ()=>refresh(),
-          child: ListView(
-            children: snapshot.data!.docs.map<Widget>((doc) => _buildUserListItem(doc,contacts)).toList()
-          ),
-        );
-      }
-    },);}
-    else{
-      return const Text("loading");
-    }
-    }
-    
-  );
-  }
-   Widget _buildLastMessage(String receiverUserID) {
-    // Ограничиваем запрос последним сообщением
-    List<String> ids = [FirebaseAuth.instance.currentUser!.uid, receiverUserID];
-  ids.sort();
-  String chatRoomId = ids.join("_");
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('chat_rooms')
-          .doc(chatRoomId)
-          .collection('messages')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting || snapshot.connectionState == ConnectionState.none) {
-          return const SizedBox();
-        } else if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-          return _buildLastMessageItem(snapshot.data!.docs.first);
-        } else {
-          return const Text('No messages yet');
-        }
-      },
-    );
-  }
-  Widget _buildLastMessageItem(DocumentSnapshot documentSnapshot,){
- Map<String,dynamic> data = documentSnapshot.data() as Map<String,dynamic>;
- String sender = (data['senderId']==FirebaseAuth.instance.currentUser!.uid?"You: ":"");
- switch (data['messageType']) {
-   case "text":
-   return Row(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.center,
-     children: [
-            if(data['senderId']!=FirebaseAuth.instance.currentUser!.uid&&data['isRead']!=null&&!data['isRead']) Icon(Icons.circle, size: IconTheme.of(context).size!*0.5, color: Theme.of(context).primaryColor,),
-           SizedBox(width: 4,), 
-       Expanded(child: Text(sender+(data["message"]??""), style: TextStyle(fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis,),maxLines: 1, overflow: TextOverflow.ellipsis,)),
-       
-     ],
-   );
-   default:
-   return Text(sender+(data['messageType']??(data["message"]??"")), style: TextStyle(fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis),maxLines: 1,);
+  
+   
  }
- 
- }
- Widget _buildUserListItem(DocumentSnapshot documentSnapshot, List contacts){
-    Map<String,dynamic> data = documentSnapshot.data()! as Map<String,dynamic>;
-    Timestamp? lastVisited = data['lastVisited'];
-    return FutureBuilder<String>(
-       future: getNickNames(documentSnapshot.id),
-  builder: (context, snapshot) {
-    if(auth.currentUser!.email!=data['email']&&contacts.contains(documentSnapshot.id)){
-   //   addContact(documentSnapshot.id);
-      return Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: ListTile(
-            subtitle: _buildLastMessage(data['uid']),
-          leading: SizedBox(
-            width: 50,
-            height: 50,
-            child: FutureBuilder<String>(
-                future: _getProfileImageUrl(data['uid']),
-                builder: (context, snapshot) {
-            if (!snapshot.hasData||kIsWeb) {
-              return CircleAvatar(
-                radius: 75,
-                backgroundImage: CachedNetworkImageProvider(
-                    "https://static-00.iconduck.com/assets.00/profile-circle-icon-2048x2048-cqe5466q.png"),
-              );
-            }else{
-            String profileImageUrl = snapshot.data!;
-            return GestureDetector(
-              onTap: () {
-                viewImage(context, profileImageUrl);
-                debugPrint("ViewProfile");
-              },
-              child: CircleAvatar(
-                radius: 75,
-                backgroundImage: CachedNetworkImageProvider(profileImageUrl),
-              ),
-            );}
-                },
-              ),
-          ),
-          title: Text(snapshot.data??"loading..."),
-          trailing: Text(
-            lastVisited==null
-            ?"undefined":
-            (
-              lastVisited.toDate().toString().substring(0,10)==Timestamp.now().toDate().toString().substring(0,10)
-              ?
-              (
-                (Timestamp.now().seconds-lastVisited.seconds<100)
-                ?
-                "online"
-                :
-                lastVisited.toDate().toString().substring(11, 16)
-                )
-              :"${ChatService().toMonth(lastVisited.toDate().toString().substring(5, 7))} ${lastVisited.toDate().toString().substring(8, 16)} ")
-              ),
-          onTap: (){
-if(snapshot.data==null){
-refresh();
-}else{
-              Navigator.push(context, MaterialPageRoute(builder:(context) => ChatPage(reciverUserID: data['uid'], reciverUserEmail: data['email'],reciverUserName: snapshot.data!, about: data['about'],),));
-
-}
-          },
-        ),
-      );
-    }else{
-      return Container();
-    }});
-  }
-}

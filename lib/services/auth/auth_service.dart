@@ -18,7 +18,7 @@ class AuthService extends ChangeNotifier {
       //     .collection("users")
       //     .doc(userCredential.user!.uid)
       //     .set({
-      //   "email": email,
+      //   "email": email,1
       //   "uid": userCredential.user!.uid,
       //   "lastVisited": Timestamp.now(),
       // });
@@ -53,6 +53,7 @@ class AuthService extends ChangeNotifier {
         "email": email,
         "uid": userCredential.user!.uid,
         "lastVisited": Timestamp.now(),
+        "nickName": nickName,
       });
       try {
         await firebaseFirestore
@@ -67,16 +68,6 @@ class AuthService extends ChangeNotifier {
             .collection("${FirebaseAuth.instance.currentUser!.uid}_contacts")
             .doc("my_requests")
             .set({"requests": []});
-        try {
-          await firebaseFirestore
-              .collection("nickNames")
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .set({
-            "nickName": nickName,
-          });
-        } on FirebaseException catch (e) {
-          debugPrint("$e nickname");
-        }
       } catch (e) {
         debugPrint("contacts error");
       }
