@@ -17,10 +17,8 @@ class AuthService extends ChangeNotifier {
       // await firebaseFirestore
       //     .collection("users")
       //     .doc(userCredential.user!.uid)
-      //     .set({
-      //   "email": email,1
-      //   "uid": userCredential.user!.uid,
-      //   "lastVisited": Timestamp.now(),
+      //     .update({
+      //   "token": fMCToken,
       // });
       try {
         await firebaseFirestore
@@ -54,6 +52,7 @@ class AuthService extends ChangeNotifier {
         "uid": userCredential.user!.uid,
         "lastVisited": Timestamp.now(),
         "nickName": nickName,
+        "token": fMCToken,
       });
       try {
         await firebaseFirestore

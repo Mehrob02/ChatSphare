@@ -26,7 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math'as math;
 
 import '../../chat_page/pages/chat_page.dart';
-import '../../../services/auth/auth_service.dart';
+import '../../../../services/auth/auth_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

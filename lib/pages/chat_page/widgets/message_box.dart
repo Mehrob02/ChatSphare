@@ -4,11 +4,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chatsphere/models/message.dart';
 import 'package:chatsphere/widgets/notification_body.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:in_app_notification/in_app_notification.dart';
 import 'package:photo_view/photo_view.dart';
 
 class MessageBox extends StatefulWidget {
-  const MessageBox({super.key, required this.child, required this.timestamp, required this.aligment, this.replyTo, this.messageType, this.replyToId, this.isRead,});
+  const MessageBox({super.key, required this.child, required this.timestamp, required this.aligment, this.replyTo, this.messageType, this.replyToId, this.isRead, required this.edited,});
   final Widget child;
   final String timestamp;
   final Alignment aligment;
@@ -16,6 +17,7 @@ class MessageBox extends StatefulWidget {
   final String? replyToId;
   final bool? isRead;
   final MessageType? messageType;
+  final bool edited;
   @override
   State<MessageBox> createState() => _MessageBoxState();
 }
@@ -46,8 +48,12 @@ class _MessageBoxState extends State<MessageBox> {
                 ),
                 Row(
                   mainAxisSize:MainAxisSize.min,
-                  children: [
-                    Text(" ${widget.timestamp}", style: TextStyle(color:widget.aligment==Alignment.centerRight?Theme.of(context).textTheme.bodyMedium!.color:Theme.of(context).primaryColor,fontSize: 12),),
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [ 
+                  Text(" ${widget.timestamp}", style: TextStyle(color:widget.aligment==Alignment.centerRight?Theme.of(context).textTheme.bodyMedium!.color:Theme.of(context).primaryColor,fontSize: 12),),
+                 if(widget.edited) Icon(Icons.circle, size: IconTheme.of(context).size!*0.2, color:widget.aligment==Alignment.centerRight?Theme.of(context).textTheme.bodyMedium!.color:Theme.of(context).primaryColor),
+                 if(widget.edited) Text("edited", style: TextStyle(color:widget.aligment==Alignment.centerRight?Theme.of(context).textTheme.bodyMedium!.color:Theme.of(context).primaryColor,fontSize: 12),),
                   if(widget.aligment==Alignment.centerRight&&widget.isRead!=null)  Icon(widget.isRead==true?Icons.check_circle_outline_outlined:Icons.check, size: IconTheme.of(context).size!*0.5, color:Theme.of(context).textTheme.bodyMedium!.color)
                   ],
                 )

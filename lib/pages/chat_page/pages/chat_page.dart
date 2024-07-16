@@ -18,7 +18,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -31,11 +30,11 @@ import 'package:pie_menu/pie_menu.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/file_view.dart';
-import '../../../widgets/notification_body.dart';
-import '../../../services/settings/settings_service.dart';
+import '../../../../widgets/notification_body.dart';
+import '../../../../services/settings/settings_service.dart';
 import 'profile_view.dart';
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends StatefulWidget{
   const ChatPage({super.key, required this.reciverUserEmail, required this.reciverUserID, required this.reciverUserName, this.profileImageUrl, this.about});
   final String reciverUserEmail;
   final String reciverUserID;
@@ -45,7 +44,7 @@ class ChatPage extends StatefulWidget {
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage>{
   final TextEditingController textController = TextEditingController();
   final TextEditingController textEditingController = TextEditingController();
   final ChatService chatService =ChatService();
@@ -712,6 +711,7 @@ return
                         ),
                          messageType!=null?
                           MessageBox(
+                            edited: data['edited']??false,
                             isRead: data['isRead'],
                                      replyToId: data['replyToId'],
                                      messageType: messageType,
@@ -1024,6 +1024,7 @@ return
                                      )
                          : 
                   MessageBox(
+                    edited: data['edited']??false,
                     isRead: data['isRead'],
                     replyToId: data['replyToId'],
                     aligment: aligment,
@@ -1132,10 +1133,8 @@ return
         ),
       ),
     ),
-        if(data['edited']!=null)Text('edited',style: TextStyle(color:aligment==Alignment.centerRight?Theme.of(context).textTheme.bodyMedium!.color:Theme.of(context).primaryColor,fontSize: 12),),
       ],
     );
-
 
   }
   Widget _buildMessageInput(){

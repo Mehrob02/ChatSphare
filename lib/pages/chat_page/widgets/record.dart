@@ -14,9 +14,9 @@ import 'package:in_app_notification/in_app_notification.dart';
 import 'package:just_audio/just_audio.dart' as ap;
 import 'package:lottie/lottie.dart';
 
-import '../../../models/message.dart';
-import '../../../widgets/notification_body.dart';
-import '../../../services/chat/chat_service.dart';
+import '../../../../models/message.dart';
+import '../../../../widgets/notification_body.dart';
+import '../../../../services/chat/chat_service.dart';
 
 
 

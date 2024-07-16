@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
-import '../../../services/chat/chat_service.dart';
+import '../../../../services/chat/chat_service.dart';
 
 class FriendRequestPage extends StatefulWidget {
   const FriendRequestPage({super.key, required this.friendRequestList, required this.onAccept});

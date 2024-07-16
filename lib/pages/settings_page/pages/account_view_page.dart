@@ -12,8 +12,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../home_page/pages/home_page.dart';
-import '../../../services/auth/auth_service.dart';
-import '../../../services/settings/settings_service.dart';
+import '../../../../services/auth/auth_service.dart';
+import '../../../../services/settings/settings_service.dart';
 
 class AccountViewPage extends StatefulWidget {
   const AccountViewPage({super.key});

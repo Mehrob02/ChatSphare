@@ -14,7 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'account_view_page.dart';
 import 'customisation_page.dart';
-import '../../../services/settings/settings_service.dart';
+import '../../../../services/settings/settings_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key,});
@@ -53,7 +53,7 @@ void showAbout(){
           child: Column(
             children: [
               Expanded(
-                flex: 2,
+                flex: 10,
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
@@ -114,7 +114,7 @@ void showAbout(){
                 ),
               ),
               Expanded(
-                flex: 3,
+                flex: 17,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
@@ -141,7 +141,7 @@ void showAbout(){
                                         });
                                     },
                                     leading: ClipRRect(
-                                      borderRadius: BorderRadius.circular(50),
+                                      borderRadius: BorderRadius.circular(40),
                                       child: Container(
                                         color: Theme.of(context).primaryColor,
                                         child: Padding(

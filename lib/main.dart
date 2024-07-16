@@ -9,6 +9,7 @@ import 'package:in_app_notification/in_app_notification.dart';
 import 'package:pie_menu/pie_menu.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'mytests/home.dart';
 import 'services/internet_provider/internet_provider.dart';
 import 'services/auth/auth_service.dart';
 import 'services/settings/settings_service.dart';
@@ -60,9 +61,6 @@ void main() async {
       child: MyApp(),
     ),
   );
-  // runApp(
-  //   MyHome()
-  // );
 }
 
 class MyApp extends StatelessWidget {
